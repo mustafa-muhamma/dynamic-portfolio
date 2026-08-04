@@ -15,6 +15,8 @@ if (isConfigured) {
   });
 }
 
+export { cloudinary };
+
 export function cloudinaryConfigured(): boolean {
   return isConfigured;
 }

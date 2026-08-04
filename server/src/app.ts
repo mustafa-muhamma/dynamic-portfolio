@@ -7,6 +7,7 @@ import { requestLogger } from "./middleware/requestLogger.js";
 import adminRouter from "./routes/admin.js";
 import authRouter from "./routes/auth.js";
 import healthRouter from "./routes/health.js";
+import { mediaRouter } from "./routes/media.js";
 import publicRouter from "./routes/public.js";
 
 export function createApp(): Express {
@@ -20,6 +21,7 @@ export function createApp(): Express {
   app.use("/api/v1/auth", authRouter);
   app.use("/api/v1", publicRouter);
   app.use("/api/v1", adminRouter);
+  app.use("/api/v1", mediaRouter);
 
   app.use((_req, res) => {
     res.status(404).json({
