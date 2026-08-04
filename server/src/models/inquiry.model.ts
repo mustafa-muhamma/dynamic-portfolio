@@ -15,4 +15,5 @@ const inquirySchema = new Schema(
 
 export type Inquiry = InferSchemaType<typeof inquirySchema>;
 
-export const InquiryModel = models.Inquiry ?? model("Inquiry", inquirySchema);
+const inquiryModel = model("Inquiry", inquirySchema);
+export const InquiryModel: typeof inquiryModel = models.Inquiry ?? inquiryModel;

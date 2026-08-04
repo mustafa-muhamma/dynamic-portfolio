@@ -16,4 +16,5 @@ const processSchema = new Schema(
 
 export type Process = InferSchemaType<typeof processSchema>;
 
-export const ProcessModel = models.Process ?? model("Process", processSchema);
+const processModel = model("Process", processSchema);
+export const ProcessModel: typeof processModel = models.Process ?? processModel;

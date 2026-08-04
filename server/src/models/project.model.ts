@@ -21,4 +21,5 @@ const projectSchema = new Schema(
 
 export type Project = InferSchemaType<typeof projectSchema>;
 
-export const ProjectModel = models.Project ?? model("Project", projectSchema);
+const projectModel = model("Project", projectSchema);
+export const ProjectModel: typeof projectModel = models.Project ?? projectModel;

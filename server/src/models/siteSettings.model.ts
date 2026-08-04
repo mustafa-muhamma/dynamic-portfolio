@@ -24,4 +24,5 @@ const siteSettingsSchema = new Schema(
 
 export type SiteSettings = InferSchemaType<typeof siteSettingsSchema>;
 
-export const SiteSettingsModel = models.SiteSettings ?? model("SiteSettings", siteSettingsSchema);
+const siteSettingsModel = model("SiteSettings", siteSettingsSchema);
+export const SiteSettingsModel: typeof siteSettingsModel = models.SiteSettings ?? siteSettingsModel;

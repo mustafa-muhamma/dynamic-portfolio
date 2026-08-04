@@ -17,4 +17,5 @@ const serviceSchema = new Schema(
 
 export type Service = InferSchemaType<typeof serviceSchema>;
 
-export const ServiceModel = models.Service ?? model("Service", serviceSchema);
+const serviceModel = model("Service", serviceSchema);
+export const ServiceModel: typeof serviceModel = models.Service ?? serviceModel;

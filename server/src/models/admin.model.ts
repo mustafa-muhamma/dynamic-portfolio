@@ -1,5 +1,4 @@
-import mongoose from "mongoose";
-import type { InferSchemaType } from "mongoose";
+import mongoose, { type InferSchemaType } from "mongoose";
 
 const { Schema, model, models } = mongoose;
 
@@ -14,4 +13,5 @@ const adminSchema = new Schema(
 
 export type Admin = InferSchemaType<typeof adminSchema>;
 
-export const AdminModel = models.Admin ?? model("Admin", adminSchema);
+const adminModel = model("Admin", adminSchema);
+export const AdminModel: typeof adminModel = models.Admin ?? adminModel;

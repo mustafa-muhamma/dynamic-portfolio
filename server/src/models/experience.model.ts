@@ -21,4 +21,5 @@ const experienceSchema = new Schema(
 
 export type Experience = InferSchemaType<typeof experienceSchema>;
 
-export const ExperienceModel = models.Experience ?? model("Experience", experienceSchema);
+const experienceModel = model("Experience", experienceSchema);
+export const ExperienceModel: typeof experienceModel = models.Experience ?? experienceModel;

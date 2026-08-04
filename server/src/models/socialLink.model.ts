@@ -15,4 +15,5 @@ const socialLinkSchema = new Schema(
 
 export type SocialLink = InferSchemaType<typeof socialLinkSchema>;
 
-export const SocialLinkModel = models.SocialLink ?? model("SocialLink", socialLinkSchema);
+const socialLinkModel = model("SocialLink", socialLinkSchema);
+export const SocialLinkModel: typeof socialLinkModel = models.SocialLink ?? socialLinkModel;

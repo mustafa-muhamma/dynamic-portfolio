@@ -16,16 +16,23 @@ import { SkillModel } from "../models/skill.model.js";
 import { SocialLinkModel } from "../models/socialLink.model.js";
 import { TestimonialModel } from "../models/testimonial.model.js";
 
-function listController<T>(model: Model<T>) {
+// Mongoose's Model type is rigid via its '~standard' property, so accept any concrete
+// model shape here; result types are narrowed below through explicit casts.
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type LeanModel = Model<any, any, any, any, any, any, any>;
+
+function listController(model: LeanModel) {
   return async (_req: Request, res: Response): Promise<void> => {
-    const docs = await model.find({ published: true }).sort({ order: 1 }).lean();
+    const docs = (await model.find({ published: true }).sort({ order: 1 }).lean()) as Array<{
+      _id: unknown;
+    }>;
     res.json(docs.map((doc) => toApiDoc(doc)));
   };
 }
 
-function singleController<T>(model: Model<T>, label: string) {
+function singleController(model: LeanModel, label: string) {
   return async (_req: Request, res: Response): Promise<void> => {
-    const doc = await model.findOne().lean();
+    const doc = (await model.findOne().lean()) as { _id: unknown } | null;
     if (!doc) {
       res.status(404).json({
         error: { code: "NOT_FOUND", message: `${label} not found` }

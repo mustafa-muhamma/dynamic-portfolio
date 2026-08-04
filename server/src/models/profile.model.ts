@@ -18,4 +18,5 @@ const profileSchema = new Schema(
 
 export type Profile = InferSchemaType<typeof profileSchema>;
 
-export const ProfileModel = models.Profile ?? model("Profile", profileSchema);
+const profileModel = model("Profile", profileSchema);
+export const ProfileModel: typeof profileModel = models.Profile ?? profileModel;

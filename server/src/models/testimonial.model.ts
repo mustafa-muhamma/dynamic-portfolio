@@ -18,4 +18,5 @@ const testimonialSchema = new Schema(
 
 export type Testimonial = InferSchemaType<typeof testimonialSchema>;
 
-export const TestimonialModel = models.Testimonial ?? model("Testimonial", testimonialSchema);
+const testimonialModel = model("Testimonial", testimonialSchema);
+export const TestimonialModel: typeof testimonialModel = models.Testimonial ?? testimonialModel;

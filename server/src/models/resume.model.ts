@@ -15,4 +15,5 @@ const resumeSchema = new Schema(
 
 export type Resume = InferSchemaType<typeof resumeSchema>;
 
-export const ResumeModel = models.Resume ?? model("Resume", resumeSchema);
+const resumeModel = model("Resume", resumeSchema);
+export const ResumeModel: typeof resumeModel = models.Resume ?? resumeModel;

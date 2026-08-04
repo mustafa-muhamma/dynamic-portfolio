@@ -18,4 +18,5 @@ const educationSchema = new Schema(
 
 export type Education = InferSchemaType<typeof educationSchema>;
 
-export const EducationModel = models.Education ?? model("Education", educationSchema);
+const educationModel = model("Education", educationSchema);
+export const EducationModel: typeof educationModel = models.Education ?? educationModel;

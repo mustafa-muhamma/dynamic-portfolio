@@ -16,4 +16,5 @@ const skillSchema = new Schema(
 
 export type Skill = InferSchemaType<typeof skillSchema>;
 
-export const SkillModel = models.Skill ?? model("Skill", skillSchema);
+const skillModel = model("Skill", skillSchema);
+export const SkillModel: typeof skillModel = models.Skill ?? skillModel;

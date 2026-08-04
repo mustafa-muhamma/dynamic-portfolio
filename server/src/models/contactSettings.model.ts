@@ -16,5 +16,6 @@ const contactSettingsSchema = new Schema(
 
 export type ContactSettings = InferSchemaType<typeof contactSettingsSchema>;
 
-export const ContactSettingsModel =
-  models.ContactSettings ?? model("ContactSettings", contactSettingsSchema);
+const contactSettingsModel = model("ContactSettings", contactSettingsSchema);
+export const ContactSettingsModel: typeof contactSettingsModel =
+  models.ContactSettings ?? contactSettingsModel;

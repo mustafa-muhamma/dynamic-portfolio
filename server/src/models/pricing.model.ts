@@ -17,4 +17,5 @@ const pricingSchema = new Schema(
 
 export type Pricing = InferSchemaType<typeof pricingSchema>;
 
-export const PricingModel = models.Pricing ?? model("Pricing", pricingSchema);
+const pricingModel = model("Pricing", pricingSchema);
+export const PricingModel: typeof pricingModel = models.Pricing ?? pricingModel;
