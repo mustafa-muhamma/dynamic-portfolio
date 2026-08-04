@@ -1,0 +1,25 @@
+import { v2 as cloudinary } from "cloudinary";
+
+import { env } from "../config/env.js";
+
+const isConfigured = Boolean(
+  env.CLOUDINARY_CLOUD_NAME && env.CLOUDINARY_API_KEY && env.CLOUDINARY_API_SECRET
+);
+
+if (isConfigured) {
+  cloudinary.config({
+    cloud_name: env.CLOUDINARY_CLOUD_NAME,
+    api_key: env.CLOUDINARY_API_KEY,
+    api_secret: env.CLOUDINARY_API_SECRET,
+    secure: true
+  });
+}
+
+export function cloudinaryConfigured(): boolean {
+  return isConfigured;
+}
+
+export async function verifyCloudinary(): Promise<void> {
+  if (!isConfigured) return;
+  await cloudinary.api.usage();
+}

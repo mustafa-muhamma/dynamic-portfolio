@@ -3,6 +3,7 @@ import mongoose from "mongoose";
 import { env } from "./config/env.js";
 import { createApp } from "./app.js";
 import { logger } from "./lib/logger.js";
+import { cloudinaryConfigured, verifyCloudinary } from "./services/cloudinary.js";
 
 const app = createApp();
 
@@ -20,6 +21,19 @@ async function connectDatabase(): Promise<void> {
   }
 }
 
+async function verifyMediaStorage(): Promise<void> {
+  if (!cloudinaryConfigured()) {
+    logger.warn("[media] Cloudinary credentials missing; media uploads disabled");
+    return;
+  }
+  try {
+    await verifyCloudinary();
+    logger.info("[media] Cloudinary connected");
+  } catch (error) {
+    logger.error({ err: error }, "[media] Cloudinary verification failed");
+  }
+}
+
 async function shutdown(signal: string): Promise<void> {
   logger.info(`[server] received ${signal}, shutting down`);
   server.close();
@@ -30,4 +44,7 @@ async function shutdown(signal: string): Promise<void> {
 process.on("SIGINT", () => void shutdown("SIGINT"));
 process.on("SIGTERM", () => void shutdown("SIGTERM"));
 
-void connectDatabase();
+void (async () => {
+  await connectDatabase();
+  await verifyMediaStorage();
+})();
