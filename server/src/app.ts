@@ -4,6 +4,7 @@ import express, { type Express, type NextFunction, type Request, type Response }
 import { env } from "./config/env.js";
 import { logger } from "./lib/logger.js";
 import { requestLogger } from "./middleware/requestLogger.js";
+import adminRouter from "./routes/admin.js";
 import authRouter from "./routes/auth.js";
 import healthRouter from "./routes/health.js";
 import publicRouter from "./routes/public.js";
@@ -18,6 +19,7 @@ export function createApp(): Express {
   app.use("/api/v1", healthRouter);
   app.use("/api/v1/auth", authRouter);
   app.use("/api/v1", publicRouter);
+  app.use("/api/v1", adminRouter);
 
   app.use((_req, res) => {
     res.status(404).json({

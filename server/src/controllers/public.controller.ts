@@ -1,7 +1,7 @@
 import type { Request, Response } from "express";
-import type { Model } from "mongoose";
 
 import { toApiDoc } from "../lib/serialize.js";
+import type { LeanModel } from "../types/model.js";
 import { ContactSettingsModel } from "../models/contactSettings.model.js";
 import { EducationModel } from "../models/education.model.js";
 import { ExperienceModel } from "../models/experience.model.js";
@@ -15,11 +15,6 @@ import { SiteSettingsModel } from "../models/siteSettings.model.js";
 import { SkillModel } from "../models/skill.model.js";
 import { SocialLinkModel } from "../models/socialLink.model.js";
 import { TestimonialModel } from "../models/testimonial.model.js";
-
-// Mongoose's Model type is rigid via its '~standard' property, so accept any concrete
-// model shape here; result types are narrowed below through explicit casts.
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-type LeanModel = Model<any, any, any, any, any, any, any>;
 
 function listController(model: LeanModel) {
   return async (_req: Request, res: Response): Promise<void> => {
