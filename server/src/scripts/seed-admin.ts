@@ -1,9 +1,8 @@
 import mongoose from "mongoose";
 
 import { env } from "../config/env.js";
+import { ensureAdmin } from "../lib/adminSeed.js";
 import { logger } from "../lib/logger.js";
-import { hashPassword } from "../lib/password.js";
-import { AdminModel } from "../models/admin.model.js";
 
 async function seedAdmin(): Promise<void> {
   if (!env.ADMIN_EMAIL || !env.ADMIN_PASSWORD) {
@@ -12,18 +11,7 @@ async function seedAdmin(): Promise<void> {
   }
 
   await mongoose.connect(env.MONGODB_URI);
-  const passwordHash = await hashPassword(env.ADMIN_PASSWORD);
-
-  const existing = await AdminModel.findOne({ email: env.ADMIN_EMAIL });
-  if (existing) {
-    existing.passwordHash = passwordHash;
-    await existing.save();
-    logger.info(`[seed] admin ${env.ADMIN_EMAIL} updated`);
-  } else {
-    await AdminModel.create({ email: env.ADMIN_EMAIL, passwordHash });
-    logger.info(`[seed] admin ${env.ADMIN_EMAIL} created`);
-  }
-
+  await ensureAdmin();
   await mongoose.disconnect();
   process.exit(0);
 }

@@ -2,6 +2,7 @@ import mongoose from "mongoose";
 
 import { env } from "./config/env.js";
 import { createApp } from "./app.js";
+import { ensureAdmin } from "./lib/adminSeed.js";
 import { logger } from "./lib/logger.js";
 import { cloudinaryConfigured, verifyCloudinary } from "./services/cloudinary.js";
 
@@ -18,6 +19,14 @@ async function connectDatabase(): Promise<void> {
   } catch (error) {
     logger.error({ err: error }, "[database] connection failed");
     logger.warn("[database] continuing without a database connection (M1 will require it)");
+  }
+}
+
+async function seedAdminUser(): Promise<void> {
+  try {
+    await ensureAdmin();
+  } catch (error) {
+    logger.error({ err: error }, "[seed] admin seed failed");
   }
 }
 
@@ -46,5 +55,6 @@ process.on("SIGTERM", () => void shutdown("SIGTERM"));
 
 void (async () => {
   await connectDatabase();
+  await seedAdminUser();
   await verifyMediaStorage();
 })();
