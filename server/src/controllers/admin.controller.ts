@@ -54,7 +54,7 @@ export function updateOne(model: LeanModel, schema: WriteSchema) {
     }
 
     const doc = await model
-      .findByIdAndUpdate(id, parsed.data, { new: true, runValidators: true })
+      .findByIdAndUpdate(id, parsed.data, { returnDocument: "after", runValidators: true })
       .lean();
     if (!doc) {
       res.status(404).json({
@@ -106,7 +106,10 @@ export function upsertOne(model: LeanModel, createSchema: WriteSchema, updateSch
 
     if (existing) {
       const updated = await model
-        .findByIdAndUpdate(existing._id, parsed.data, { new: true, runValidators: true })
+        .findByIdAndUpdate(existing._id, parsed.data, {
+          returnDocument: "after",
+          runValidators: true
+        })
         .lean();
       res.json(toApiDoc(updated));
       return;
