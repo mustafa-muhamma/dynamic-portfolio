@@ -1,7 +1,7 @@
 # MASTER PLAN
 
 > **Status:** Active
-> **Last Updated:** 2026-08-03
+> **Last Updated:** 2026-08-04
 >
 > This document defines **HOW** we build the product. It is the project's **source of truth** and is updated continuously.
 >
@@ -22,17 +22,16 @@
 - [x] Documentation hierarchy established
 - [x] Architecture decisions finalized (stack + repo layout)
 - [x] Repository scaffolding
-- [ ] Server (headless API)
+- [x] Server (headless API)
 - [ ] Dashboard (admin routes in `client/`)
 - [ ] Public portfolio
 - [ ] Content completeness
 - [ ] Hardening & launch
 
-**Progress: ~15%**
+**Progress: ~30%**
 
 ## Remaining Work
 
-- Build content API + data model (M1).
 - Build dashboard modules (M2).
 - Build public portfolio modules (M3).
 - Fill real content via the dashboard (M4).
@@ -40,7 +39,7 @@
 
 ## Milestones
 
-### M0 — Foundations (Current)
+### M0 — Foundations (Complete)
 
 **Goal:** Documentation hierarchy + architecture decisions + project scaffolding.
 **Deliverables:**
@@ -52,20 +51,21 @@
 - [x] Root tooling (Husky + lint-staged + Prettier) for the monorepo
       **Exit criteria:** A new contributor can run the full stack locally.
 
-### M1 — Server Foundations
+### M1 — Server Foundations (Complete)
 
 **Goal:** A working headless content API and database with the full content model.
 **Deliverables:**
 
-- Express + TypeScript + MongoDB/Mongoose setup.
-- Database schema for all Content Model entities.
-- Read-only public REST endpoints.
-- JWT authentication + authenticated write endpoints.
-- Multer (temp) + Cloudinary media handling.
-- Seed data.
-  **Exit criteria:** All public content retrievable via API; writes require auth; tests pass.
+- [x] Express + TypeScript + MongoDB/Mongoose setup.
+- [x] Database schema for all Content Model entities.
+- [x] Read-only public REST endpoints.
+- [x] JWT authentication + authenticated write endpoints.
+- [x] Multer (temp) + Cloudinary media handling.
+- [x] Seed data (real content from the owner's CV).
+- [x] Vitest + Supertest test suite (23 tests).
+      **Exit criteria met:** All public content retrievable via API; writes require auth; tests pass.
 
-### M2 — Dashboard
+### M2 — Dashboard (Current)
 
 **Goal:** The owner can manage all content from the admin dashboard (inside `client/`).
 **Deliverables:**
@@ -170,7 +170,6 @@ Convention: small, focused commits, one logical task each. Suggested message for
 - Inquiry delivery (email vs. inbox vs. both) — PRD §17.
 - Refresh-token decision during implementation — PRD §17.
 - Finalize backend hosting provider (Railway vs. Render) — PRD §17.
-- Content seeding script for real data.
 - Deployment automation (CI/CD via GitHub).
 
 ## Technical Debt
@@ -193,12 +192,11 @@ Convention: small, focused commits, one logical task each. Suggested message for
 ## Next Session Plan
 
 1. Run the session workflow (read the four docs).
-2. Begin M1: database schema for all Content Model entities (Mongoose models).
-3. Build read-only public REST endpoints for all entities.
-4. Add JWT authentication + authenticated write endpoints.
-5. Multer (temp) + Cloudinary media handling.
-6. Seed data.
-7. Commit and close with documentation updates.
+2. Begin M2: Next.js App Router `(public)` / `(admin)` route groups + auth guard middleware.
+3. Login/logout for the admin.
+4. CRUD modules for every content entity (recruiter + client sets).
+5. Publish/unpublish, settings, and the inquiries inbox.
+6. Commit and close with documentation updates.
 
 ---
 

@@ -186,3 +186,79 @@
 - Complete M1: full content model, read-only public API, authenticated writes, and tests.
 
 ---
+
+## Session 4 — 2026-08-04
+
+- **Session Duration:** M1 implementation (multiple sub-sessions).
+- **Session Number:** 4
+- **Phase:** 1 — Foundations (M1 — Server Foundations)
+
+### Completed Work
+
+- Added Mongoose models for the full Content Model (16 models) with a shared `models/index.ts`; fixed Mongoose 9 ESM imports (`default import` + destructure `Schema`/`model`/`models`).
+- Added read-only public REST endpoints for the recruiter set (profile, resume, skills, experience, education, projects, social links) and the client set (services, pricing, process, testimonials, contact settings, site settings) via a controllers layer (`src/controllers/public.controller.ts`).
+- Added `POST /api/v1/inquiries` with Zod validation (201/400) and a 403 when the contact form is disabled.
+- Added JWT auth: login/me endpoints, `requireAuth` middleware, `seed:admin` script, admin auto-seed at startup (`src/lib/adminSeed.ts`).
+- Added auth-guarded write endpoints for every entity via generic controller factories (`createOne`/`updateOne`/`deleteOne`/`upsertOne`) with per-entity Zod schemas.
+- Added pino logger + request logging middleware, and a Cloudinary connectivity check at startup.
+- Added image uploads: Multer temp upload → Cloudinary (`POST /api/v1/media`, auth-guarded) with `src/services/upload.ts` (`uploadImage`/`deleteImage`).
+- Added `npm run seed:content` — idempotent content seed populated with the owner's real CV data (profile, 35 skills, 6 experience entries, education, 4 projects, social links, services, process, contact/site settings). Pricing and testimonials intentionally empty (no data in the CV; no fabricated content).
+- Added Vitest + Supertest API test suite (23 tests) covering health, public reads, inquiries, auth, admin CRUD, and media guards. Runs against a dedicated `portfolio_test` database.
+- Completed M1; exit criteria met (all public content retrievable via API; writes require auth; tests pass).
+
+### Problems Found
+
+- Mongoose 9 ships ESM-only; named imports fail at runtime. Fixed with default import + destructure.
+- Mongoose 9 model typing broke field queries (and a generic helper caused `tsc` to OOM). Fixed with the explicit `model(...)` + `models.X ?? model` re-export pattern and a shared `LeanModel` type.
+- Mongoose 9 deprecates `new: true` on `findOneAndUpdate`; switched to `returnDocument: "after"`.
+- Shared Zod field types had to be `.optional()` — non-optional versions made omitted fields (e.g. `order`) fail validation with 400.
+- `mongodb-memory-server`'s postinstall binary download hung `npm install`; dropped it and used a dedicated local test DB (`portfolio_test`) instead.
+- The dev server (`tsx watch`) child crashed after a hot-reload; recovered by touching a watched file to trigger a respawn.
+- PowerShell gotchas during live verification: `$pid` is a reserved variable, and the `curl` alias hangs the shell (use `curl.exe`).
+
+### Architecture Decisions
+
+- AD-09: Server models use the explicit `models.X ?? model` pattern with a shared loose `LeanModel` type for generic controllers.
+- AD-10: Tests run against a dedicated `portfolio_test` database (local MongoDB), avoiding a memory-server binary download.
+
+### Commits Created
+
+- `feat(server): add mongoose models for content model`
+- `fix(server): make mongoose ESM imports work under NodeNext`
+- `docs(plan): add session workflow to master plan`
+- `feat(server): add public read-only endpoints for recruiter entities`
+- `feat(server): add controllers and public read endpoints for client entities`
+- `feat(server): add public inquiry submission with zod validation`
+- `feat(server): add pino logger with request logging middleware`
+- `feat(server): verify Cloudinary connectivity at startup`
+- `refactor(server): type mongoose models explicitly for field queries`
+- `feat(server): add JWT auth with login/me endpoints and admin seed`
+- `feat(server): auto-seed admin user at startup so deployed env stays in sync`
+- `feat(server): add auth-guarded CRUD for recruiter entities`
+- `feat(server): add auth-guarded CRUD for client entities`
+- `feat(server): add image upload endpoint backed by Cloudinary`
+- `feat(server): seed real portfolio content from owner CV`
+- `test(server): add Vitest + Supertest API test suite`
+- Pending: `docs(plan): close out M1 (server foundations)`
+
+### Files Added
+
+- `server/src/models/*` (16 models + index), `server/src/controllers/*`, `server/src/routes/{public,auth,admin,media,health}.ts`, `server/src/validation/{auth,inquiry,recruiter,client}.ts`, `server/src/middleware/{auth,requestLogger,upload}.ts`, `server/src/lib/{adminSeed,jwt,password,logger,serialize}.ts`, `server/src/services/{cloudinary,upload}.ts`, `server/src/scripts/{seed-admin,seed-content}.ts`, `server/src/types/model.ts`
+- `server/tests/{api.test.ts,helpers.ts,setup.ts}`, `server/vitest.config.ts`
+
+### Files Modified
+
+- `docs/MASTER_PLAN.md` (M1 complete, progress ~30%, Day 3, next session plan → M2)
+- `docs/DAILY_LOG.md` (this entry)
+- `server/package.json` (pino, pino-pretty, cloudinary, multer, jsonwebtoken, bcryptjs; dev: vitest, supertest, @types/supertest; scripts `seed:admin`, `seed:content`, `test`)
+
+### Remaining Tasks
+
+- Build the dashboard (M2) inside `client/`.
+- Note for deploy pipeline: run `npm run seed:admin` (or rely on startup auto-seed) before going live.
+
+### Tomorrow's Goal
+
+- Begin M2: Next.js App Router `(public)` / `(admin)` route groups, auth guard, login/logout, and the first CRUD modules.
+
+---
