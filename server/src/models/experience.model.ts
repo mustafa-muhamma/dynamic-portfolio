@@ -1,0 +1,21 @@
+import { model, models, Schema, type InferSchemaType } from "mongoose";
+
+const experienceSchema = new Schema(
+  {
+    role: { type: String, required: true, trim: true },
+    company: { type: String, required: true, trim: true },
+    location: { type: String, default: "" },
+    start: { type: String, default: "" },
+    end: { type: String, default: "" },
+    current: { type: Boolean, default: false },
+    summary: { type: String, default: "" },
+    bullets: { type: [String], default: [] },
+    order: { type: Number, default: 0 },
+    published: { type: Boolean, default: false }
+  },
+  { timestamps: true, versionKey: false }
+);
+
+export type Experience = InferSchemaType<typeof experienceSchema>;
+
+export const ExperienceModel = models.Experience ?? model("Experience", experienceSchema);
