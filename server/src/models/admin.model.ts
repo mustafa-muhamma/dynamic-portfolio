@@ -1,4 +1,7 @@
-import { model, models, Schema, type InferSchemaType } from "mongoose";
+import mongoose from "mongoose";
+import type { InferSchemaType } from "mongoose";
+
+const { Schema, model, models } = mongoose;
 
 const adminSchema = new Schema(
   {
