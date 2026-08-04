@@ -2,6 +2,8 @@ import cors from "cors";
 import express, { type Express, type NextFunction, type Request, type Response } from "express";
 
 import { env } from "./config/env.js";
+import { logger } from "./lib/logger.js";
+import { requestLogger } from "./middleware/requestLogger.js";
 import healthRouter from "./routes/health.js";
 import publicRouter from "./routes/public.js";
 
@@ -10,6 +12,7 @@ export function createApp(): Express {
 
   app.use(cors({ origin: env.CLIENT_URL, credentials: true }));
   app.use(express.json({ limit: "1mb" }));
+  app.use(requestLogger);
 
   app.use("/api/v1", healthRouter);
   app.use("/api/v1", publicRouter);
@@ -23,8 +26,8 @@ export function createApp(): Express {
     });
   });
 
-  app.use((err: unknown, _req: Request, res: Response, _next: NextFunction) => {
-    console.error(err);
+  app.use((err: unknown, req: Request, res: Response, _next: NextFunction) => {
+    logger.error({ err, method: req.method, url: req.originalUrl }, "unhandled error");
     res.status(500).json({
       error: {
         code: "INTERNAL_ERROR",

@@ -2,25 +2,26 @@ import mongoose from "mongoose";
 
 import { env } from "./config/env.js";
 import { createApp } from "./app.js";
+import { logger } from "./lib/logger.js";
 
 const app = createApp();
 
 const server = app.listen(env.PORT, () => {
-  console.log(`[server] listening on http://localhost:${env.PORT} (${env.NODE_ENV})`);
+  logger.info(`[server] listening on http://localhost:${env.PORT} (${env.NODE_ENV})`);
 });
 
 async function connectDatabase(): Promise<void> {
   try {
     await mongoose.connect(env.MONGODB_URI);
-    console.log("[database] connected");
+    logger.info("[database] connected");
   } catch (error) {
-    console.error("[database] connection failed:", error);
-    console.warn("[database] continuing without a database connection (M1 will require it)");
+    logger.error({ err: error }, "[database] connection failed");
+    logger.warn("[database] continuing without a database connection (M1 will require it)");
   }
 }
 
 async function shutdown(signal: string): Promise<void> {
-  console.log(`[server] received ${signal}, shutting down`);
+  logger.info(`[server] received ${signal}, shutting down`);
   server.close();
   await mongoose.disconnect().catch(() => undefined);
   process.exit(0);
