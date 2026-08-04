@@ -1,5 +1,6 @@
 import { Router } from "express";
 
+import { createInquiry } from "../controllers/inquiry.controller.js";
 import {
   getContactSettings,
   getProfile,
@@ -32,5 +33,7 @@ router.get("/profile", getProfile);
 router.get("/resume", getResume);
 router.get("/contact-settings", getContactSettings);
 router.get("/site-settings", getSiteSettings);
+
+router.post("/inquiries", createInquiry);
 
 export default router;
