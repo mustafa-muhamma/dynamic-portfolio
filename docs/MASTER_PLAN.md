@@ -126,6 +126,18 @@ Any new **major dependency** requires approval before introduction. A proposal m
 
 Dependencies listed in the approved stack (PRD §13) are pre-approved for their stated purpose.
 
+## Session Workflow
+
+Every work session follows this order:
+
+1. **Review** — read the four docs (vision, PRD, master plan, daily log).
+2. **Plan** — agree on exactly what will be done this session and split it into logical commits.
+3. **Discuss** — confirm the plan (scope, approach, and any open decisions) before writing code.
+4. **Execute** — implement one commit at a time; after each commit, the next session step is a fresh review.
+5. **Close** — update docs (master plan progress + daily log entry) and commit.
+
+No implementation happens before the plan is agreed. A day's work = one reviewed, committed, and documented unit of work.
+
 ## Daily Objectives
 
 **Day 1 (2026-08-03):**
