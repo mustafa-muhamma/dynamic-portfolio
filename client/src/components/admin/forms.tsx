@@ -111,7 +111,7 @@ export function ProfileForm({
     formState: { errors }
   } = useForm({
     resolver: zodResolver(profileSchema),
-    defaultValues
+    defaultValues: defaultValues ?? {}
   });
   const photo = useWatch({ control, name: "photo" });
   const resumeUrl = useWatch({ control, name: "resume" });
@@ -192,7 +192,7 @@ export function ResumeForm({
     formState: { errors }
   } = useForm({
     resolver: zodResolver(resumeSchema),
-    defaultValues
+    defaultValues: defaultValues ?? {}
   });
   const fileUrl = useWatch({ control, name: "fileUrl" });
   const fileName = useWatch({ control, name: "fileName" });
@@ -254,7 +254,7 @@ export function HeroForm({
     formState: { errors }
   } = useForm({
     resolver: zodResolver(heroSchema),
-    defaultValues
+    defaultValues: defaultValues ?? {}
   });
   const image = useWatch({ control, name: "image" });
   const backgroundType = useWatch({ control, name: "backgroundType" });
@@ -1119,7 +1119,7 @@ export function SiteSettingsForm({
     formState: { errors }
   } = useForm({
     resolver: zodResolver(siteSettingsSchema),
-    defaultValues
+    defaultValues: defaultValues ?? {}
   });
   const navigationLabels = useWatch({ control, name: "navigationLabels" }) as
     Record<string, string> | undefined;

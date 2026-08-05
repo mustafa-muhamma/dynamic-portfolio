@@ -73,7 +73,7 @@ export function CollectionManager<K extends ContentResource>({
   const [editing, setEditing] = useState<CollectionDoc[K] | null>(null);
   const [search, setSearch] = useState("");
 
-  const rows = (list.data ?? []).filter(
+  const rows = (Array.isArray(list.data) ? list.data : []).filter(
     (row) => !search || !searchText || searchText(row).toLowerCase().includes(search.toLowerCase())
   );
 
