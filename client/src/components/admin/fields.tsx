@@ -104,6 +104,42 @@ export function ListField({
   );
 }
 
+export function ColorField({
+  label,
+  error,
+  hint,
+  value,
+  onChange,
+  id
+}: {
+  label: string;
+  error?: string;
+  hint?: string;
+  value?: string;
+  onChange: (value: string) => void;
+  id?: string;
+}) {
+  const current = value || "#000000";
+  return (
+    <Field label={label} htmlFor={id} error={error} hint={hint}>
+      <div className="flex items-center gap-2">
+        <label className="relative block h-9 w-16 cursor-pointer overflow-hidden rounded-lg border border-input">
+          <input
+            type="color"
+            id={id}
+            aria-invalid={!!error}
+            className="absolute inset-0 h-full w-full cursor-pointer opacity-0"
+            value={current}
+            onChange={(e) => onChange(e.target.value)}
+          />
+          <span className="absolute inset-0" style={{ backgroundColor: current }} />
+        </label>
+        <span className="font-mono text-sm text-muted-foreground">{value || "Not set"}</span>
+      </div>
+    </Field>
+  );
+}
+
 export function SwitchField({
   label,
   description,

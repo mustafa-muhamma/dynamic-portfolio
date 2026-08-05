@@ -6,6 +6,7 @@ import { useForm, useWatch } from "react-hook-form";
 import { z } from "zod";
 
 import {
+  ColorField,
   ListField,
   NumberField,
   SwitchField,
@@ -257,6 +258,7 @@ export function HeroForm({
   });
   const image = useWatch({ control, name: "image" });
   const backgroundType = useWatch({ control, name: "backgroundType" });
+  const backgroundColor = useWatch({ control, name: "backgroundColor" });
   const backgroundImage = useWatch({ control, name: "backgroundImage" });
   const animated = useWatch({ control, name: "animated" });
   const published = useWatch({ control, name: "published" });
@@ -320,10 +322,11 @@ export function HeroForm({
           onUploaded={(asset) => setValue("backgroundImage", asset.url, { shouldDirty: true })}
         />
       ) : (
-        <TextField
+        <ColorField
           label="Background color"
-          hint='Hex value, e.g. "#0a0a0a"'
-          {...register("backgroundColor")}
+          hint="Click the swatch to pick a color"
+          value={backgroundColor}
+          onChange={(v) => setValue("backgroundColor", v, { shouldDirty: true })}
         />
       )}
       <SwitchField
