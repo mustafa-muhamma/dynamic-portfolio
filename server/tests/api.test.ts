@@ -1,7 +1,7 @@
 import request from "supertest";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
-import { createApp } from "../src/app.js";
+import { createApp } from "../src/createApp.js";
 import { ContactSettingsModel } from "../src/models/contactSettings.model.js";
 import { ProfileModel } from "../src/models/profile.model.js";
 import { ProjectModel } from "../src/models/project.model.js";

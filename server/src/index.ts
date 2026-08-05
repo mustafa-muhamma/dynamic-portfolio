@@ -1,7 +1,7 @@
 import type { Request, Response } from "express";
 import mongoose from "mongoose";
 
-import { createApp } from "./app.js";
+import { createApp } from "./createApp.js";
 import { env } from "./config/env.js";
 import { bootstrap } from "./lib/bootstrap.js";
 import { logger } from "./lib/logger.js";
