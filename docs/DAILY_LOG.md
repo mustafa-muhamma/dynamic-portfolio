@@ -386,3 +386,60 @@
 - Begin M3: scaffold the `(public)` route group and build the recruiter-facing pages (Home, About, Experience, Skills, Projects, Resume, Contact).
 
 ---
+
+## Session 7 — 2026-08-05
+
+- **Session Duration:** Hero singleton + responsive dashboard session.
+- **Session Number:** 7
+- **Phase:** 1 — Foundations (M2 — Dashboard refinement)
+
+### Completed Work
+
+- Added the `Hero` singleton model on the server (`server/src/models/hero.model.ts`): `eyebrow`, `heading`, `subheading`, primary/secondary CTA label + URL, `image`, `backgroundType` (`color|image`), `backgroundColor`, `backgroundImage`, `animated`, `published`; registered in `server/src/models/index.ts`.
+- Added `heroWriteSchema`/`heroUpdateSchema` in `server/src/validation/hero.ts` and admin routes `PUT/GET /admin/hero` plus the public `GET /api/v1/hero` in `server/src/routes/admin.ts` / `server/src/routes/public.ts` / `server/src/controllers/public.controller.ts`.
+- Seeded a starter hero document in `server/src/scripts/seed-content.ts` and extended the API test suite with three cases (hero upsert, admin read, public read). Suite now at 38 tests; server typecheck/lint/test all pass.
+- Client: added `Hero` type + `hero` entry in `SINGLETONS` (`client/src/lib/content.ts`) and a `HeroForm` (`client/src/components/admin/forms.tsx`) with FilePickers for the hero image and background image, a background type Select (color/image), and SwitchFields for `animated`/`published`.
+- Added the `/admin/hero` page (`client/src/app/(admin)/admin/hero/page.tsx`) backed by `SingletonManager`, plus a nav item in the Recruiter section (Rocket icon).
+- Made the dashboard responsive: `AdminNav` is now `hidden md:flex` with a new `MobileNav` drawer (hamburger + overlay + close on nav) rendered in the layout header; admin layout main padding scales down on mobile; collection tables wrapped in `overflow-x-auto`; search input and header actions wrap/scale on small screens; all `grid-cols-2` form grids are now `grid-cols-1 sm:grid-cols-2`.
+- Replaced the manual hex text input for the hero background color with a `ColorField` color picker (native swatch + live hex display) in `client/src/components/admin/fields.tsx`, wired into the HeroForm.
+- Verified: client `tsc`, ESLint, and `next build` pass clean (build lists the new `/admin/hero` route).
+
+### Problems Found
+
+- Base UI `Select` typing friction with RHF; used the controlled `value` + `onValueChange` form of the Select root instead of a RHF controller.
+- ESLint's `react-hooks/set-state-in-effect` rule rejected closing the mobile drawer via a `useEffect` on `pathname`; the drawer instead closes through the link `onNavigate` handler and the overlay click.
+- `SwitchField` uses a `description` prop (not `hint`); the HeroForm initially passed `hint`, caught by `tsc`.
+
+### Architecture Decisions
+
+- AD-13: Hero is a dedicated singleton (not a field on Profile) so the landing section stays independently editable and published via its own toggle.
+
+### Commits Created
+
+- `feat(server): add hero singleton with admin and public endpoints`
+- `feat(client): add hero singleton management with responsive admin shell`
+- `feat(client): use color picker for hero background color`
+- Pending: `docs(log): record session 7 - hero singleton and responsive dashboard`
+
+### Files Added
+
+- `server/src/models/hero.model.ts`, `server/src/validation/hero.ts`
+- `client/src/app/(admin)/admin/hero/page.tsx`
+
+### Files Modified
+
+- `server/src/models/index.ts`, `server/src/routes/admin.ts`, `server/src/routes/public.ts`, `server/src/controllers/public.controller.ts`, `server/src/scripts/seed-content.ts`, `server/tests/api.test.ts`
+- `client/src/lib/content.ts` (Hero type + SINGLETONS entry), `client/src/components/admin/forms.tsx` (HeroForm + responsive grids + color picker), `client/src/components/admin/fields.tsx` (new `ColorField`), `client/src/components/admin/admin-nav.tsx` (Hero nav item, desktop/mobile split), `client/src/app/(admin)/layout.tsx` (mobile drawer entry), `client/src/components/admin/collection-manager.tsx` (table overflow + responsive actions)
+- `docs/DAILY_LOG.md` (this entry)
+
+### Remaining Tasks
+
+- Build the public portfolio (M3): recruiter path + client path, all API-driven — starting with the Home/hero section consuming `GET /api/v1/hero` (split layout: eyebrow + gradient animated heading when `animated` is on).
+- Fill real content via the dashboard (M4).
+- Test, harden, and deploy (M5).
+
+### Tomorrow's Goal
+
+- Begin M3: scaffold the `(public)` route group and build the Home/hero section from the new Hero singleton (data-driven, animations via CSS + IntersectionObserver, mobile-first).
+
+---
