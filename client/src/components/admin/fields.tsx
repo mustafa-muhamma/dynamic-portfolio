@@ -1,0 +1,127 @@
+"use client";
+
+import type { ReactNode } from "react";
+
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
+import { Textarea } from "@/components/ui/textarea";
+
+function Field({
+  label,
+  htmlFor,
+  error,
+  hint,
+  children
+}: {
+  label: string;
+  htmlFor?: string;
+  error?: string;
+  hint?: string;
+  children: ReactNode;
+}) {
+  return (
+    <div className="flex flex-col gap-1.5">
+      <Label htmlFor={htmlFor}>{label}</Label>
+      {children}
+      {hint && !error && <p className="text-xs text-muted-foreground">{hint}</p>}
+      {error && <p className="text-sm text-destructive">{error}</p>}
+    </div>
+  );
+}
+
+type InputProps = React.ComponentProps<"input"> & {
+  label: string;
+  error?: string;
+  hint?: string;
+};
+
+export function TextField({ label, error, hint, id, ...props }: InputProps) {
+  return (
+    <Field label={label} htmlFor={id} error={error} hint={hint}>
+      <Input id={id} aria-invalid={!!error} {...props} />
+    </Field>
+  );
+}
+
+export function NumberField({ label, error, hint, id, ...props }: InputProps) {
+  return (
+    <Field label={label} htmlFor={id} error={error} hint={hint}>
+      <Input id={id} type="number" step="any" aria-invalid={!!error} {...props} />
+    </Field>
+  );
+}
+
+export function TextAreaField({
+  label,
+  error,
+  hint,
+  id,
+  ...props
+}: React.ComponentProps<"textarea"> & {
+  label: string;
+  error?: string;
+  hint?: string;
+}) {
+  return (
+    <Field label={label} htmlFor={id} error={error} hint={hint}>
+      <Textarea id={id} aria-invalid={!!error} {...props} />
+    </Field>
+  );
+}
+
+export function ListField({
+  label,
+  error,
+  hint = "One item per line.",
+  value,
+  onChange,
+  rows = 4
+}: {
+  label: string;
+  error?: string;
+  hint?: string;
+  value?: string[];
+  onChange: (value: string[]) => void;
+  rows?: number;
+}) {
+  return (
+    <Field label={label} error={error} hint={hint}>
+      <Textarea
+        rows={rows}
+        aria-invalid={!!error}
+        value={(value ?? []).join("\n")}
+        onChange={(e) =>
+          onChange(
+            e.target.value
+              .split("\n")
+              .map((line) => line.trim())
+              .filter(Boolean)
+          )
+        }
+      />
+    </Field>
+  );
+}
+
+export function SwitchField({
+  label,
+  description,
+  checked,
+  onCheckedChange
+}: {
+  label: string;
+  description?: string;
+  checked: boolean;
+  onCheckedChange: (checked: boolean) => void;
+}) {
+  return (
+    <div className="flex items-center justify-between gap-4 rounded-lg border p-3">
+      <div>
+        <p className="text-sm font-medium">{label}</p>
+        {description && <p className="text-xs text-muted-foreground">{description}</p>}
+      </div>
+      <Switch checked={checked} onCheckedChange={onCheckedChange} />
+    </div>
+  );
+}
