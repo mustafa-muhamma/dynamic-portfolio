@@ -3,7 +3,7 @@ import "server-only";
 import { cookies } from "next/headers";
 
 export const ADMIN_COOKIE = "admin_token";
-export const SESSION_MAX_AGE = 60 * 60 * 24 * 7;
+export const SESSION_MAX_AGE = 60 * 60 * 24 * 365;
 
 export async function createSession(token: string): Promise<void> {
   const cookieStore = await cookies();

@@ -1,5 +1,17 @@
 const BASE = "/api/admin";
 
+let loggingOut = false;
+
+async function handleUnauthorized(): Promise<void> {
+  if (loggingOut) return;
+  loggingOut = true;
+  try {
+    await fetch("/api/auth/logout", { method: "POST", cache: "no-store" });
+  } finally {
+    window.location.assign(new URL("/login", window.location.origin).toString());
+  }
+}
+
 export class ApiError extends Error {
   status: number;
 
@@ -17,6 +29,11 @@ export async function adminRequest<T>(method: string, path: string, body?: unkno
     body: body !== undefined ? JSON.stringify(body) : undefined,
     cache: "no-store"
   });
+
+  if (res.status === 401) {
+    await handleUnauthorized();
+    throw new ApiError(401, "Session expired. Please log in again.");
+  }
 
   const text = await res.text();
   const data = text ? (JSON.parse(text) as T | { error?: { message?: string } }) : undefined;
