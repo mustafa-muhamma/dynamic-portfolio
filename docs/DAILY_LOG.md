@@ -329,3 +329,60 @@
 - Begin M3: scaffold the `(public)` route group and build the recruiter-facing pages (Home, About, Experience, Skills, Projects, Resume, Contact).
 
 ---
+
+## Session 6 — 2026-08-05
+
+- **Session Duration:** Dashboard media uploads session.
+- **Session Number:** 6
+- **Phase:** 1 — Foundations (M2 — Dashboard refinement)
+
+### Completed Work
+
+- Extended the media endpoint to accept documents: `POST /api/v1/media?kind=image|document`. `kind=document` allows PDF/DOC/DOCX (Cloudinary `raw`), `kind=image` keeps image/* only; both capped at 5MB. `server/src/middleware/upload.ts` now exports `uploadImage` and `uploadDocument` multer instances.
+- Generalized `server/src/services/upload.ts` from image-only helpers to `uploadFile()`/`deleteFile()` that take an upload `kind`.
+- Rewrote `server/src/routes/media.ts` to select the multer instance and Cloudinary resource type from the `kind` query param.
+- Extended `server/tests/api.test.ts` with two media cases (rejects non-documents for `kind=document`; accepts a PDF and fails gracefully when Cloudinary is unconfigured). Suite now at 35 tests.
+- Added a client media client `client/src/lib/media.ts` (file-type + size validation, `uploadFile()` helper) and a `POST /api/media` route handler that proxies the multipart body to the backend with the session token.
+- Exported `handleUnauthorized` from `client/src/lib/admin-api.ts` so the media client reuses the same 401 → logout redirect.
+- Added `client/src/components/admin/file-picker.tsx` with two reusable pickers: `FilePicker` (single file — image thumbnail/document icon preview, upload/replace/remove, URL fallback input) and `ImageListPicker` (multi-image upload grid with per-image remove + URL add input). Both validate type and 5MB size client-side.
+- Wired pickers into the dashboard forms: Profile photo + resume, the Resume singleton (picker auto-fills `fileName`/`mimeType`/`size`; `fileName` derived from URL when pasted), Project images (multi-upload replacing the URL-list text area), and Testimonial avatar.
+- Verified: server typecheck/lint + 35 tests pass; client `tsc`, ESLint, and `next build` pass clean (build shows new `/api/media` route).
+
+### Problems Found
+
+- Multer 2.x instances are not directly callable as middleware; the media route had to call `.single("file")` on the selected instance.
+- RHF's form value type for the Resume form left `fileName` as `string | undefined`, which broke assignment to `CreateDoc<Resume>`; normalized `fileName` from the URL on submit.
+- Next 16's proxy body limit defaults to 10MB — fine for 5MB uploads; the `/api/media` route handler buffers the request body as an `ArrayBuffer` and forwards it with the incoming `Content-Type` (boundary preserved).
+
+### Architecture Decisions
+
+- AD-12: One media endpoint handles both images and documents, disambiguated by a `?kind=` query param, so the client never sends raw binary to Cloudinary directly.
+
+### Commits Created
+
+- None (awaiting explicit request).
+
+### Files Added
+
+- `client/src/lib/media.ts`
+- `client/src/app/api/media/route.ts`
+- `client/src/components/admin/file-picker.tsx`
+
+### Files Modified
+
+- `server/src/middleware/upload.ts`, `server/src/services/upload.ts`, `server/src/routes/media.ts`, `server/tests/api.test.ts`
+- `client/src/lib/admin-api.ts` (exported `handleUnauthorized`), `client/src/components/admin/forms.tsx` (Profile, Resume, Project, Testimonial forms)
+- `docs/DAILY_LOG.md` (this entry)
+
+### Remaining Tasks
+
+- Optionally verify a real Cloudinary upload end-to-end in dev.
+- Build the public portfolio (M3): recruiter path + client path, all API-driven.
+- Fill real content via the dashboard (M4).
+- Test, harden, and deploy (M5).
+
+### Tomorrow's Goal
+
+- Begin M3: scaffold the `(public)` route group and build the recruiter-facing pages (Home, About, Experience, Skills, Projects, Resume, Contact).
+
+---
