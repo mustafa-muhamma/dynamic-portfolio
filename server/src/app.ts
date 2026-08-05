@@ -23,6 +23,10 @@ export function createApp(): Express {
   app.use("/api/v1", adminRouter);
   app.use("/api/v1", mediaRouter);
 
+  app.get("/", (_req, res) => {
+    res.redirect("/api/v1/health");
+  });
+
   app.use((_req, res) => {
     res.status(404).json({
       error: {
