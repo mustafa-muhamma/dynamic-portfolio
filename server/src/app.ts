@@ -20,7 +20,7 @@ export function createApp(): Express {
   app.use("/api/v1", healthRouter);
   app.use("/api/v1/auth", authRouter);
   app.use("/api/v1", publicRouter);
-  app.use("/api/v1", adminRouter);
+  app.use("/api/v1/admin", adminRouter);
   app.use("/api/v1", mediaRouter);
 
   app.get("/", (_req, res) => {

@@ -148,7 +148,7 @@ describe("auth", () => {
 describe("admin write endpoints", () => {
   it("rejects writes without a token", async () => {
     const res = await request(app)
-      .post("/api/v1/skills")
+      .post("/api/v1/admin/skills")
       .send({ name: "Docker", category: "Tools", level: 3 })
       .expect(401);
     expect(res.body.error.code).toBe("UNAUTHORIZED");
@@ -156,7 +156,7 @@ describe("admin write endpoints", () => {
 
   it("creates a skill", async () => {
     const res = await request(app)
-      .post("/api/v1/skills")
+      .post("/api/v1/admin/skills")
       .set(authed())
       .send({ name: "Docker", category: "Tools", level: 3, published: true })
       .expect(201);
@@ -166,7 +166,7 @@ describe("admin write endpoints", () => {
 
   it("rejects invalid skill payloads", async () => {
     const res = await request(app)
-      .post("/api/v1/skills")
+      .post("/api/v1/admin/skills")
       .set(authed())
       .send({ name: "X", level: 9 })
       .expect(400);
@@ -175,7 +175,7 @@ describe("admin write endpoints", () => {
 
   it("updates a skill", async () => {
     const res = await request(app)
-      .put(`/api/v1/skills/${skillId}`)
+      .put(`/api/v1/admin/skills/${skillId}`)
       .set(authed())
       .send({ published: false })
       .expect(200);
@@ -183,17 +183,99 @@ describe("admin write endpoints", () => {
   });
 
   it("deletes a skill", async () => {
-    const res = await request(app).delete(`/api/v1/skills/${skillId}`).set(authed()).expect(200);
+    const res = await request(app)
+      .delete(`/api/v1/admin/skills/${skillId}`)
+      .set(authed())
+      .expect(200);
     expect(res.body.deleted).toBe(true);
   });
 
   it("upserts the profile singleton", async () => {
     const res = await request(app)
-      .put("/api/v1/profile")
+      .put("/api/v1/admin/profile")
       .set(authed())
       .send({ name: "Updated Name" })
       .expect(200);
     expect(res.body.name).toBe("Updated Name");
+  });
+});
+
+describe("admin read endpoints", () => {
+  it("requires a token", async () => {
+    const res = await request(app).get("/api/v1/admin/skills").expect(401);
+    expect(res.body.error.code).toBe("UNAUTHORIZED");
+  });
+
+  it("lists all skills including unpublished", async () => {
+    const res = await request(app).get("/api/v1/admin/skills").set(authed()).expect(200);
+    expect(res.body.length).toBeGreaterThanOrEqual(3);
+    const hidden = res.body.find((s: { name: string }) => s.name === "Hidden Skill");
+    expect(hidden).toBeDefined();
+  });
+
+  it("lists all projects including unpublished", async () => {
+    const res = await request(app).get("/api/v1/admin/projects").set(authed()).expect(200);
+    expect(res.body.some((p: { title: string }) => p.title === "Hidden Project")).toBe(true);
+  });
+
+  it("returns the profile singleton", async () => {
+    const res = await request(app).get("/api/v1/admin/profile").set(authed()).expect(200);
+    expect(res.body.name).toBe("Updated Name");
+  });
+
+  it("returns 404 for a missing singleton", async () => {
+    const res = await request(app).get("/api/v1/admin/site-settings").set(authed()).expect(404);
+    expect(res.body.error.code).toBe("NOT_FOUND");
+  });
+});
+
+describe("admin inquiry management", () => {
+  let inquiryId = "";
+
+  it("lists inquiries newest first", async () => {
+    await request(app)
+      .post("/api/v1/inquiries")
+      .send({ name: "Older", email: "older@example.com", message: "First" })
+      .expect(201);
+    const res = await request(app)
+      .post("/api/v1/inquiries")
+      .send({ name: "Newer", email: "newer@example.com", message: "Second" })
+      .expect(201);
+    inquiryId = res.body.id;
+
+    const list = await request(app).get("/api/v1/admin/inquiries").set(authed()).expect(200);
+    expect(list.body[0].name).toBe("Newer");
+  });
+
+  it("requires a token to list inquiries", async () => {
+    const res = await request(app).get("/api/v1/admin/inquiries").expect(401);
+    expect(res.body.error.code).toBe("UNAUTHORIZED");
+  });
+
+  it("marks an inquiry as read", async () => {
+    const res = await request(app)
+      .put(`/api/v1/admin/inquiries/${inquiryId}`)
+      .set(authed())
+      .send({ read: true })
+      .expect(200);
+    expect(res.body.read).toBe(true);
+  });
+
+  it("rejects an invalid inquiry payload", async () => {
+    const res = await request(app)
+      .put(`/api/v1/admin/inquiries/${inquiryId}`)
+      .set(authed())
+      .send({ read: "yes" })
+      .expect(400);
+    expect(res.body.error.code).toBe("VALIDATION_ERROR");
+  });
+
+  it("deletes an inquiry", async () => {
+    const res = await request(app)
+      .delete(`/api/v1/admin/inquiries/${inquiryId}`)
+      .set(authed())
+      .expect(200);
+    expect(res.body.deleted).toBe(true);
   });
 });
 

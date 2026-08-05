@@ -12,6 +12,26 @@ function toObjectIdOrNull(id: string | string[] | undefined): mongoose.Types.Obj
   return new mongoose.Types.ObjectId(id);
 }
 
+export function listAll(model: LeanModel) {
+  return async (_req: Request, res: Response): Promise<void> => {
+    const docs = (await model.find().sort({ order: 1 }).lean()) as Array<{ _id: unknown }>;
+    res.json(docs.map((doc) => toApiDoc(doc)));
+  };
+}
+
+export function getOne(model: LeanModel, label: string) {
+  return async (_req: Request, res: Response): Promise<void> => {
+    const doc = (await model.findOne().lean()) as { _id: unknown } | null;
+    if (!doc) {
+      res.status(404).json({
+        error: { code: "NOT_FOUND", message: `${label} not found` }
+      });
+      return;
+    }
+    res.json(toApiDoc(doc));
+  };
+}
+
 export function createOne(model: LeanModel, schema: WriteSchema) {
   return async (req: Request, res: Response): Promise<void> => {
     const parsed = schema.safeParse(req.body);

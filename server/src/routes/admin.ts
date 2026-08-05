@@ -1,6 +1,14 @@
 import { Router } from "express";
 
-import { createOne, deleteOne, updateOne, upsertOne } from "../controllers/admin.controller.js";
+import {
+  createOne,
+  deleteOne,
+  getOne,
+  listAll,
+  updateOne,
+  upsertOne
+} from "../controllers/admin.controller.js";
+import { deleteInquiry, listInquiries, updateInquiry } from "../controllers/inquiry.controller.js";
 import { requireAuth } from "../middleware/auth.js";
 import { ContactSettingsModel } from "../models/contactSettings.model.js";
 import { EducationModel } from "../models/education.model.js";
@@ -54,6 +62,25 @@ router.put(
   upsertOne(ProfileModel, profileWriteSchema, profileUpdateSchema)
 );
 router.put("/resume", requireAuth, upsertOne(ResumeModel, resumeWriteSchema, resumeUpdateSchema));
+
+router.get("/profile", requireAuth, getOne(ProfileModel, "Profile"));
+router.get("/resume", requireAuth, getOne(ResumeModel, "Resume"));
+router.get("/contact-settings", requireAuth, getOne(ContactSettingsModel, "Contact settings"));
+router.get("/site-settings", requireAuth, getOne(SiteSettingsModel, "Site settings"));
+
+router.get("/experience", requireAuth, listAll(ExperienceModel));
+router.get("/education", requireAuth, listAll(EducationModel));
+router.get("/skills", requireAuth, listAll(SkillModel));
+router.get("/projects", requireAuth, listAll(ProjectModel));
+router.get("/social-links", requireAuth, listAll(SocialLinkModel));
+router.get("/services", requireAuth, listAll(ServiceModel));
+router.get("/pricing", requireAuth, listAll(PricingModel));
+router.get("/process", requireAuth, listAll(ProcessModel));
+router.get("/testimonials", requireAuth, listAll(TestimonialModel));
+
+router.get("/inquiries", requireAuth, listInquiries);
+router.put("/inquiries/:id", requireAuth, updateInquiry);
+router.delete("/inquiries/:id", requireAuth, deleteInquiry);
 
 router.post("/experience", requireAuth, createOne(ExperienceModel, experienceWriteSchema));
 router.put("/experience/:id", requireAuth, updateOne(ExperienceModel, experienceUpdateSchema));
