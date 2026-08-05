@@ -1,7 +1,7 @@
 # MASTER PLAN
 
 > **Status:** Active
-> **Last Updated:** 2026-08-04
+> **Last Updated:** 2026-08-05
 >
 > This document defines **HOW** we build the product. It is the project's **source of truth** and is updated continuously.
 >
@@ -11,11 +11,11 @@
 
 ## Current Phase
 
-**Phase 1 — Foundations** (documentation, architecture decisions, scaffolding)
+**Phase 1 — Foundations** (M0–M2 complete; dashboard delivered)
 
 ## Current Day
 
-- **Day 3** of the project (2026-08-04).
+- **Day 4** of the project (2026-08-05).
 
 ## Overall Progress
 
@@ -23,16 +23,15 @@
 - [x] Architecture decisions finalized (stack + repo layout)
 - [x] Repository scaffolding
 - [x] Server (headless API)
-- [ ] Dashboard (admin routes in `client/`)
+- [x] Dashboard (admin routes in `client/`)
 - [ ] Public portfolio
 - [ ] Content completeness
 - [ ] Hardening & launch
 
-**Progress: ~30%**
+**Progress: ~55%**
 
 ## Remaining Work
 
-- Build dashboard modules (M2).
 - Build public portfolio modules (M3).
 - Fill real content via the dashboard (M4).
 - Test, harden, and deploy (M5).
@@ -65,17 +64,18 @@
 - [x] Vitest + Supertest test suite (23 tests).
       **Exit criteria met:** All public content retrievable via API; writes require auth; tests pass.
 
-### M2 — Dashboard (Current)
+### M2 — Dashboard (Complete)
 
 **Goal:** The owner can manage all content from the admin dashboard (inside `client/`).
 **Deliverables:**
 
-- Next.js App Router setup with `(public)` / `(admin)` route groups and an auth guard (middleware).
-- Login/logout.
-- CRUD modules for every content entity.
-- Publish/unpublish.
-- Settings and inquiries.
-  **Exit criteria:** AC-01 satisfied — content changes update the API without code edits.
+- [x] Next.js App Router setup with `(admin)` route group and an auth guard (`proxy.ts` — middleware was renamed in Next 16).
+- [x] Login/logout (httpOnly cookie; proxy-guarded `/login` and `/admin`).
+- [x] CRUD modules for every content entity (12 pages wired to typed managers/forms).
+- [x] Publish/unpublish (per-row toggle in every collection list).
+- [x] Settings (contact + site settings singletons) and the inquiries inbox.
+- [x] Long-lived sessions (1-year JWT + cookie) with automatic logout on expiry.
+      **Exit criteria met:** AC-01 satisfied — content changes update the API without code edits.
 
 ### M3 — Public Portfolio MVP
 
@@ -114,6 +114,7 @@
 | AD-04 | Approved stack: Next.js/React/TS/Tailwind/shadcn/ui + RHF + Zod + TanStack Query (client); Node/Express/TS + JWT + Multer + Cloudinary SDK (server); MongoDB + Mongoose; Zod validation; REST. | **Decided** (see PRD §13)          | 2026-08-03 |
 | AD-05 | Repository layout: `server/` + `client/`; the dashboard lives inside `client/` as admin routes (approved option: "Admin inside client/").                                                      | **Decided**                        | 2026-08-03 |
 | AD-06 | Deployment: frontend → Vercel; backend → Railway/Render (final TBD); DB → MongoDB Atlas; media → Cloudinary.                                                                                   | **Decided** (backend provider TBD) | 2026-08-03 |
+| AD-11 | Dashboard sessions are long-lived (1-year JWT + cookie); an expired/invalid token triggers automatic logout. No refresh-token flow.                                                            | **Decided**                        | 2026-08-05 |
 
 ## Dependency Approval Process
 
@@ -192,11 +193,10 @@ Convention: small, focused commits, one logical task each. Suggested message for
 ## Next Session Plan
 
 1. Run the session workflow (read the four docs).
-2. Begin M2: Next.js App Router `(public)` / `(admin)` route groups + auth guard middleware.
-3. Login/logout for the admin.
-4. CRUD modules for every content entity (recruiter + client sets).
-5. Publish/unpublish, settings, and the inquiries inbox.
-6. Commit and close with documentation updates.
+2. Begin M3: scaffold the `(public)` route group with an API-driven home page.
+3. Build the recruiter path (Home, About, Experience, Skills, Projects, Resume, Contact).
+4. Build the client path (Home, Services, Pricing, Process, Testimonials, Contact).
+5. Commit and close with documentation updates.
 
 ---
 

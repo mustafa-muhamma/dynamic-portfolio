@@ -262,3 +262,70 @@
 - Begin M2: Next.js App Router `(public)` / `(admin)` route groups, auth guard, login/logout, and the first CRUD modules.
 
 ---
+
+## Session 5 — 2026-08-05
+
+- **Session Duration:** M2 implementation (multiple sub-sessions).
+- **Session Number:** 5
+- **Phase:** 1 — Foundations (M2 — Dashboard)
+
+### Completed Work
+
+- Added server admin routes for every entity (list incl. unpublished, get/create/update/delete/upsert) and inquiry management (list/update/delete), mounted at `/api/v1/admin`; tests extended to 33.
+- Added admin auth foundation in `client/`: httpOnly `admin_token` cookie, `/api/auth/login` + `/api/auth/logout` route handlers, authenticated `/api/admin/[...path]` proxy to the server, and a `proxy.ts` guard (Next 16's renamed middleware) that redirects `/admin/*` → `/login` and `/login` → `/admin`.
+- Added the admin shell: grouped sidebar (`admin-nav.tsx`), layout, and an overview card grid.
+- Added a typed admin API client (`admin-api.ts`, `content.ts`) and TanStack Query hooks (`use-content.ts`).
+- Added content management building blocks: field primitives, a generic `CollectionManager` (list/search/CRUD dialog + publish toggle + delete) and `SingletonManager`, plus a Zod/RHF form for every entity (12 forms).
+- Wired 12 admin pages (`/admin/*`): 9 collection modules, 2 singleton modules, and the combined settings page (contact + site settings).
+- Added the inquiries inbox (`/admin/inquiries`): newest-first list, unread highlight/count, mark read/unread, delete with confirm.
+- Extended sessions to 1 year (`JWT_ACCESS_EXPIRES=365d` + cookie max-age) and added automatic logout: any 401 from the admin API clears the cookie and redirects to `/login` (guarded against duplicate redirects).
+- Completed M2; exit criteria met (AC-01 — content changes update the API without code edits).
+
+### Problems Found
+
+- Build rejected passing `getLabel`/`searchText` arrow functions from server pages into client components; fixed by marking all admin pages `"use client"`.
+- The managers' `resource` prop was typed as a union, so rows/forms lost their per-entity types; refactored both managers to be generic over the resource key.
+- RHF's `watch()` was flagged by the React Compiler eslint rule (non-memoizable); refactored all forms to `useWatch`.
+- Zod `z.preprocess` fields have an `unknown` input type, so `watch("bullets")` etc. returned `unknown`; cast at the call sites.
+- After JWT expiry the user stayed on the dashboard with failing requests; added the 401 → logout redirect.
+- `window.location.assign("/login")` tripped the `no-location-assign-relative-destination` lint rule; switched to an absolute URL.
+
+### Architecture Decisions
+
+- AD-11: Dashboard sessions are long-lived (1-year JWT + cookie); an expired/invalid token triggers automatic logout. No refresh-token flow.
+
+### Commits Created
+
+- `feat(server): add admin list and inquiry management endpoints`
+- `feat(client): add admin auth foundation with proxy guard and login`
+- `feat(client): add admin shell layout with sidebar and overview page`
+- `feat(client): add typed admin API client and query hooks`
+- `feat(client): add content management modules with CRUD pages`
+- `feat(client): add inquiries inbox with read and delete actions`
+- `feat(auth): extend session to one year and force logout on expiry`
+- Pending: `docs(plan): close out M2 (dashboard)`
+
+### Files Added
+
+- `server/src/routes/admin.ts`
+- `client/src/proxy.ts`, `client/src/lib/{session,admin-api,content}.ts`, `client/src/hooks/use-content.ts`
+- `client/src/app/(admin)/*`, `client/src/app/api/{auth,admin}/**`, `client/src/components/{admin/**,ui/**}`, `client/src/components/login-form.tsx`
+
+### Files Modified
+
+- `server/.env.example` + local `.env` (`JWT_ACCESS_EXPIRES=365d`)
+- `client/src/lib/session.ts` (cookie max-age 1 year), `client/src/lib/admin-api.ts` (401 logout)
+- `docs/MASTER_PLAN.md` (M2 complete, progress ~55%, Day 4, AD-11, next session plan → M3)
+- `docs/DAILY_LOG.md` (this entry)
+
+### Remaining Tasks
+
+- Build the public portfolio (M3): recruiter path + client path, all API-driven.
+- Fill real content via the dashboard (M4).
+- Test, harden, and deploy (M5).
+
+### Tomorrow's Goal
+
+- Begin M3: scaffold the `(public)` route group and build the recruiter-facing pages (Home, About, Experience, Skills, Projects, Resume, Contact).
+
+---
