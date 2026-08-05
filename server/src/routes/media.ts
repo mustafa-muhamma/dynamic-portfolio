@@ -3,19 +3,25 @@ import multer from "multer";
 
 import { logger } from "../lib/logger.js";
 import { requireAuth } from "../middleware/auth.js";
-import { upload } from "../middleware/upload.js";
+import { uploadDocument, uploadImage } from "../middleware/upload.js";
 import { cloudinaryConfigured } from "../services/cloudinary.js";
-import { uploadImage } from "../services/upload.js";
+import { uploadFile, type UploadKind } from "../services/upload.js";
 
-const uploadMiddleware = upload.single("file");
+function parseKind(value: unknown): UploadKind {
+  return value === "document" ? "document" : "image";
+}
 
 export const mediaRouter = Router();
 
 mediaRouter.post(
   "/media",
   requireAuth,
-  (req, res, next) => {
-    uploadMiddleware(req, res, (err: unknown) => {
+  (req: Request, res: Response, next) => {
+    const middleware =
+      parseKind(req.query.kind) === "document"
+        ? uploadDocument.single("file")
+        : uploadImage.single("file");
+    middleware(req, res, (err: unknown) => {
       if (err) {
         const isMulter = err instanceof multer.MulterError;
         const message = isMulter
@@ -36,7 +42,7 @@ mediaRouter.post(
 
     if (!file) {
       return res.status(400).json({
-        error: { code: "NO_FILE", message: 'No image file provided in field "file"' }
+        error: { code: "NO_FILE", message: 'No file provided in field "file"' }
       });
     }
 
@@ -46,13 +52,15 @@ mediaRouter.post(
       });
     }
 
+    const kind = parseKind(req.query.kind);
+
     try {
-      const asset = await uploadImage(file.path, { originalName: file.originalname });
+      const asset = await uploadFile(file.path, { originalName: file.originalname, kind });
       return res.status(201).json(asset);
     } catch (error) {
-      logger.error({ err: error }, "image upload failed");
+      logger.error({ err: error }, "file upload failed");
       return res.status(500).json({
-        error: { code: "UPLOAD_FAILED", message: "Failed to upload image" }
+        error: { code: "UPLOAD_FAILED", message: "Failed to upload file" }
       });
     }
   }

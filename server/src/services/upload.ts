@@ -4,20 +4,24 @@ import path from "node:path";
 
 import { cloudinary } from "./cloudinary.js";
 
+export type UploadKind = "image" | "document";
+
 export interface UploadedAsset {
   url: string;
   publicId: string;
   bytes: number;
   format: string;
-  width: number;
-  height: number;
+  width?: number;
+  height?: number;
 }
 
-export async function uploadImage(
+export async function uploadFile(
   filePath: string,
-  options: { originalName: string; folder?: string }
+  options: { originalName: string; folder?: string; kind?: UploadKind }
 ): Promise<UploadedAsset> {
   try {
+    const kind = options.kind ?? "image";
+    const resourceType = kind === "document" ? "raw" : "image";
     const folder = options.folder ?? "portfolio";
     const ext = path.extname(options.originalName).toLowerCase();
     const base = path
@@ -28,7 +32,7 @@ export async function uploadImage(
 
     const result = await cloudinary.uploader.upload(filePath, {
       public_id: publicId,
-      resource_type: "image",
+      resource_type: resourceType,
       overwrite: false
     });
 
@@ -37,15 +41,15 @@ export async function uploadImage(
       publicId: result.public_id,
       bytes: result.bytes,
       format: result.format,
-      width: result.width,
-      height: result.height
+      ...(resourceType === "image" ? { width: result.width, height: result.height } : {})
     };
   } finally {
     await unlink(filePath).catch(() => undefined);
   }
 }
 
-export async function deleteImage(publicId: string): Promise<boolean> {
-  const result = await cloudinary.uploader.destroy(publicId);
+export async function deleteFile(publicId: string, kind: UploadKind = "image"): Promise<boolean> {
+  const resourceType = kind === "document" ? "raw" : "image";
+  const result = await cloudinary.uploader.destroy(publicId, { resource_type: resourceType });
   return result.result === "ok";
 }

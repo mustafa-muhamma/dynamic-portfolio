@@ -302,6 +302,27 @@ describe("media upload", () => {
     expect(res.body.error.code).toBe("UPLOAD_ERROR");
   });
 
+  it("rejects non-document files for document uploads", async () => {
+    const res = await request(app)
+      .post("/api/v1/media?kind=document")
+      .set("Authorization", `Bearer ${token}`)
+      .attach("file", Buffer.from("hello"), "test.txt")
+      .expect(400);
+    expect(res.body.error.code).toBe("UPLOAD_ERROR");
+  });
+
+  it("accepts documents and fails gracefully when Cloudinary is not configured", async () => {
+    const res = await request(app)
+      .post("/api/v1/media?kind=document")
+      .set("Authorization", `Bearer ${token}`)
+      .attach("file", Buffer.from("%PDF-1.4 test"), {
+        filename: "resume.pdf",
+        contentType: "application/pdf"
+      })
+      .expect(500);
+    expect(res.body.error.code).toBe("MEDIA_NOT_CONFIGURED");
+  });
+
   it("fails gracefully when Cloudinary is not configured", async () => {
     const res = await request(app)
       .post("/api/v1/media")
