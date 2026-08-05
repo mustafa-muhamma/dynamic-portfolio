@@ -443,3 +443,58 @@
 - Begin M3: scaffold the `(public)` route group and build the Home/hero section from the new Hero singleton (data-driven, animations via CSS + IntersectionObserver, mobile-first).
 
 ---
+
+## Session 8 — 2026-08-05
+
+- **Session Duration:** Empty-database hardening + health check session.
+- **Session Number:** 8
+- **Phase:** 1 — Foundations (M2 — Dashboard refinement)
+
+### Completed Work
+
+- Verified the empty-database (brand-new) flow end-to-end: singleton GETs return 404, collection GETs return `[]`, the first save of any singleton upserts a new document and the first collection POST creates one. Dropped content collections are recreated automatically on write via Mongoose `autoCreate` (indexes included), so dashboard edits are self-healing against a blank or wiped DB.
+- Hardened the client against an empty DB so every editable section accepts first-time values:
+  - `ProfileForm`, `ResumeForm`, `HeroForm`, and `SiteSettingsForm` now pass `defaultValues: defaultValues ?? {}` to `useForm`, so RHF never receives `undefined` defaults on a 404 (empty DB); the form renders empty and ready for the first value (`client/src/components/admin/forms.tsx`).
+  - `CollectionManager` list rows are guarded with `Array.isArray(list.data) ? list.data : []` instead of a bare `?? []` (`client/src/components/admin/collection-manager.tsx`).
+  - Audit confirmed all `.data` reads across the client are guarded (singletons via 404 → `undefined` → create mode, collections/inquiries via `[]`).
+- Added a real database readiness check to `GET /api/v1/health` (`server/src/routes/health.ts`): reports `database.state`, `readyState`, and `ok`, and returns HTTP `503 {status:"degraded"}` when the DB is unreachable vs. `200 {status:"ok"}` when connected. Readiness uses `readyState === 1` **plus** an actual `ping:1` command (3s cap) so a stalled-but-connected state is not a false positive; the ping is skipped while disconnected so the endpoint stays fast even with Mongoose `bufferCommands` (10s) in play.
+- Confirmed DB-down behavior of the API: `bootstrap()` swallows a failed connect and the server still listens; every DB-touching request buffers ~10s then returns 500 via the error middleware; Mongoose auto-reconnects, so no restart is needed when the DB returns.
+- Verified both health paths live: connected → 200; a throwaway boot with mongoose never connected → 503. Deleted the throwaway verification test.
+
+### Problems Found
+
+- `GET /health` previously always returned `200` with no DB signal — a false positive for availability; now returns 503 when the database is down.
+- Mongoose pluralizes `Hero` → `heros` (not `heroes`), which tripped a manual collection check; confirmed real data intact via the live API instead.
+- A stray `portfolio_blank` database and an untracked `server/tests/blank-db.test.ts` proof existed from verification; both were removed. The real `portfolio` database was verified untouched.
+
+### Architecture Decisions
+
+- AD-14: The health endpoint is a dependency-aware checker — HTTP 200/`ok` only when the DB is connected and answers `ping:1`, otherwise HTTP 503/`degraded` — so uptime monitors and load balancers can key off the status code.
+
+### Commits Created
+
+- `feat(server): add database readiness check to health endpoint`
+- `feat(client): guard admin forms and lists for empty database`
+- Pending: `docs(log): record session 8 - empty database guards and health check`
+
+### Files Added
+
+- (none)
+
+### Files Modified
+
+- `server/src/routes/health.ts`
+- `client/src/components/admin/forms.tsx`, `client/src/components/admin/collection-manager.tsx`
+- `docs/DAILY_LOG.md` (this entry)
+
+### Remaining Tasks
+
+- Build the public portfolio (M3): recruiter path + client path, all API-driven — starting with the Home/hero section consuming `GET /api/v1/hero` (split layout: eyebrow + gradient animated heading when `animated` is on).
+- Fill real content via the dashboard (M4).
+- Test, harden, and deploy (M5).
+
+### Tomorrow's Goal
+
+- Begin M3: scaffold the `(public)` route group and build the Home/hero section from the new Hero singleton (data-driven, animations via CSS + IntersectionObserver, mobile-first).
+
+---
