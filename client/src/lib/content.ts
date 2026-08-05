@@ -124,6 +124,7 @@ export type Inquiry = ApiDoc<{
   email: string;
   message: string;
   read: boolean;
+  createdAt?: string;
 }>;
 
 export const COLLECTIONS = {
