@@ -119,15 +119,15 @@ export function CollectionManager<K extends ContentResource>({
           <h1 className="text-2xl font-semibold tracking-tight">{title}</h1>
           <p className="text-sm text-muted-foreground">{description}</p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex w-full flex-wrap items-center gap-2 sm:w-auto">
           {searchText && (
-            <div className="relative">
+            <div className="relative flex-1 sm:flex-initial">
               <Search className="pointer-events-none absolute top-1/2 left-2.5 size-4 -translate-y-1/2 text-muted-foreground" />
               <Input
                 placeholder="Search..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                className="w-48 pl-8"
+                className="w-full pl-8 sm:w-48"
               />
             </div>
           )}
@@ -153,7 +153,7 @@ export function CollectionManager<K extends ContentResource>({
           {search ? "No matches." : `No ${title.toLowerCase()} yet. Create the first one.`}
         </p>
       ) : (
-        <div className="rounded-lg border">
+        <div className="overflow-x-auto rounded-lg border">
           <Table>
             <TableHeader>
               <TableRow>

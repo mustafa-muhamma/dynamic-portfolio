@@ -15,10 +15,18 @@ import {
 import { FilePicker, ImageListPicker } from "@/components/admin/file-picker";
 import type { ResourceFormProps } from "@/components/admin/collection-manager";
 import { Button } from "@/components/ui/button";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue
+} from "@/components/ui/select";
 import type {
   ContactSettings,
   Education,
   Experience,
+  Hero,
   Pricing,
   Process,
   Profile,
@@ -215,6 +223,125 @@ export function ResumeForm({
   );
 }
 
+const heroSchema = z.object({
+  eyebrow: optionalString,
+  heading: requiredString,
+  subheading: optionalString,
+  primaryCtaLabel: optionalString,
+  primaryCtaUrl: optionalString,
+  secondaryCtaLabel: optionalString,
+  secondaryCtaUrl: optionalString,
+  image: optionalString,
+  backgroundType: z.enum(["color", "image"]).optional(),
+  backgroundColor: optionalString,
+  backgroundImage: optionalString,
+  animated: optionalBool,
+  published: optionalBool
+});
+
+export function HeroForm({
+  defaultValues,
+  submitting,
+  onSubmit,
+  onCancel
+}: ResourceFormProps<Hero>) {
+  const {
+    handleSubmit,
+    setValue,
+    control,
+    register,
+    formState: { errors }
+  } = useForm({
+    resolver: zodResolver(heroSchema),
+    defaultValues
+  });
+  const image = useWatch({ control, name: "image" });
+  const backgroundType = useWatch({ control, name: "backgroundType" });
+  const backgroundImage = useWatch({ control, name: "backgroundImage" });
+  const animated = useWatch({ control, name: "animated" });
+  const published = useWatch({ control, name: "published" });
+
+  return (
+    <FormShell onSubmit={handleSubmit(onSubmit)} onCancel={onCancel} submitting={submitting}>
+      <TextField label="Eyebrow" hint="Small line above the heading" {...register("eyebrow")} />
+      <TextField label="Heading" error={errors.heading?.message} {...register("heading")} />
+      <TextAreaField
+        label="Subheading"
+        hint="One or two sentences of intro text"
+        {...register("subheading")}
+      />
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <TextField
+          label="Primary CTA label"
+          hint="e.g. View my work"
+          {...register("primaryCtaLabel")}
+        />
+        <TextField label="Primary CTA URL" {...register("primaryCtaUrl")} />
+        <TextField
+          label="Secondary CTA label"
+          hint="e.g. Contact me"
+          {...register("secondaryCtaLabel")}
+        />
+        <TextField label="Secondary CTA URL" {...register("secondaryCtaUrl")} />
+      </div>
+      <FilePicker
+        label="Hero image"
+        kind="image"
+        value={image}
+        onChange={(url) => setValue("image", url, { shouldDirty: true })}
+        onUploaded={(asset) => setValue("image", asset.url, { shouldDirty: true })}
+        error={errors.image?.message}
+      />
+      <div>
+        <span className="mb-1.5 block text-sm font-medium">Background type</span>
+        <Select
+          value={backgroundType ?? null}
+          onValueChange={(v) =>
+            setValue("backgroundType", (v ?? "color") as "color" | "image", {
+              shouldDirty: true
+            })
+          }
+        >
+          <SelectTrigger className="w-full">
+            <SelectValue placeholder="Select background type" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="color">Solid color</SelectItem>
+            <SelectItem value="image">Image</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+      {backgroundType === "image" ? (
+        <FilePicker
+          label="Background image"
+          kind="image"
+          value={backgroundImage}
+          onChange={(url) => setValue("backgroundImage", url, { shouldDirty: true })}
+          onUploaded={(asset) => setValue("backgroundImage", asset.url, { shouldDirty: true })}
+        />
+      ) : (
+        <TextField
+          label="Background color"
+          hint='Hex value, e.g. "#0a0a0a"'
+          {...register("backgroundColor")}
+        />
+      )}
+      <SwitchField
+        label="Animated"
+        description="Enable the animated heading effect on the public site"
+        checked={Boolean(animated)}
+        onCheckedChange={(v) => setValue("animated", v, { shouldDirty: true })}
+      />
+      <SwitchField
+        label="Published"
+        description="Visible on the public site"
+        checked={Boolean(published)}
+        onCheckedChange={(v) => setValue("published", v, { shouldDirty: true })}
+      />
+    </FormShell>
+  );
+}
+
 const experienceSchema = z.object({
   role: requiredString,
   company: requiredString,
@@ -254,7 +381,7 @@ export function ExperienceForm({
       onCancel={onCancel}
       submitting={submitting}
     >
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <TextField label="Role" id="role" error={errors.role?.message} {...register("role")} />
         <TextField
           label="Company"
@@ -269,7 +396,7 @@ export function ExperienceForm({
         error={errors.location?.message}
         {...register("location")}
       />
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <TextField
           label="Start"
           id="start"
@@ -293,7 +420,7 @@ export function ExperienceForm({
         {...register("summary")}
       />
       <ListField label="Bullets" value={bullets} onChange={(v) => setValue("bullets", v)} />
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <NumberField
           label="Order"
           id="order"
@@ -363,7 +490,7 @@ export function EducationForm({
         error={errors.school?.message}
         {...register("school")}
       />
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <TextField label="Start" id="start" error={errors.start?.message} {...register("start")} />
         <TextField label="End" id="end" error={errors.end?.message} {...register("end")} />
       </div>
@@ -428,7 +555,7 @@ export function SkillForm({
         error={errors.category?.message}
         {...register("category")}
       />
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <NumberField
           label="Level (1–5)"
           id="level"
@@ -501,7 +628,7 @@ export function ProjectForm({
         {...register("description")}
       />
       <TextField label="Role" id="role" error={errors.role?.message} {...register("role")} />
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <TextField label="Link" id="link" error={errors.link?.message} {...register("link")} />
         <TextField
           label="Repository"
@@ -521,7 +648,7 @@ export function ProjectForm({
         onChange={(v) => setValue("images", v)}
         hint="PNG, JPG, WebP, GIF, or SVG. Max 5MB each."
       />
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <NumberField
           label="Order"
           id="order"
@@ -576,7 +703,7 @@ export function SocialLinkForm({
       onCancel={onCancel}
       submitting={submitting}
     >
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <TextField
           label="Platform"
           id="platform"
@@ -648,7 +775,7 @@ export function ServiceForm({
         value={deliverables}
         onChange={(v) => setValue("deliverables", v)}
       />
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <NumberField
           label="Price"
           id="price"
@@ -707,7 +834,7 @@ export function PricingForm({
       submitting={submitting}
     >
       <TextField label="Tier" id="tier" error={errors.tier?.message} {...register("tier")} />
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <NumberField
           label="Price"
           id="price"
@@ -765,7 +892,7 @@ export function ProcessForm({
       onCancel={onCancel}
       submitting={submitting}
     >
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <NumberField label="Step" id="step" error={errors.step?.message} {...register("step")} />
         <NumberField
           label="Order"
@@ -833,7 +960,7 @@ export function TestimonialForm({
         error={errors.author?.message}
         {...register("author")}
       />
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <TextField label="Role" id="role" error={errors.role?.message} {...register("role")} />
         <TextField
           label="Company"
@@ -907,7 +1034,7 @@ export function ContactSettingsForm({
         error={errors.email?.message}
         {...register("email")}
       />
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <TextField label="Phone" id="phone" error={errors.phone?.message} {...register("phone")} />
         <TextField
           label="Location"

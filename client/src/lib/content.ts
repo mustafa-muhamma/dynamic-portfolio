@@ -17,6 +17,22 @@ export type Resume = ApiDoc<{
   size?: number;
 }>;
 
+export type Hero = ApiDoc<{
+  eyebrow?: string;
+  heading: string;
+  subheading?: string;
+  primaryCtaLabel?: string;
+  primaryCtaUrl?: string;
+  secondaryCtaLabel?: string;
+  secondaryCtaUrl?: string;
+  image?: string;
+  backgroundType?: "color" | "image";
+  backgroundColor?: string;
+  backgroundImage?: string;
+  animated?: boolean;
+  published?: boolean;
+}>;
+
 export type Experience = ApiDoc<{
   role: string;
   company: string;
@@ -142,6 +158,7 @@ export const COLLECTIONS = {
 export const SINGLETONS = {
   profile: "profile",
   resume: "resume",
+  hero: "hero",
   "contact-settings": "contact-settings",
   "site-settings": "site-settings"
 } as const;
@@ -166,6 +183,7 @@ export type CollectionDoc = {
 export type SingletonDoc = {
   profile: Profile;
   resume: Resume;
+  hero: Hero;
   "contact-settings": ContactSettings;
   "site-settings": SiteSettings;
 };
