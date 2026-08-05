@@ -12,6 +12,7 @@ import {
   TextAreaField,
   TextField
 } from "@/components/admin/fields";
+import { FilePicker, ImageListPicker } from "@/components/admin/file-picker";
 import type { ResourceFormProps } from "@/components/admin/collection-manager";
 import { Button } from "@/components/ui/button";
 import type {
@@ -96,11 +97,15 @@ export function ProfileForm({
   const {
     register,
     handleSubmit,
+    setValue,
+    control,
     formState: { errors }
   } = useForm({
     resolver: zodResolver(profileSchema),
     defaultValues
   });
+  const photo = useWatch({ control, name: "photo" });
+  const resumeUrl = useWatch({ control, name: "resume" });
 
   return (
     <FormShell
@@ -123,17 +128,21 @@ export function ProfileForm({
         rows={5}
         {...register("bio")}
       />
-      <TextField
-        label="Photo URL"
-        id="photo"
+      <FilePicker
+        label="Photo"
+        kind="image"
+        value={photo}
+        onChange={(v) => setValue("photo", v, { shouldDirty: true })}
         error={errors.photo?.message}
-        {...register("photo")}
+        hint="PNG, JPG, WebP, GIF, or SVG. Max 5MB."
       />
-      <TextField
-        label="Resume URL"
-        id="resume"
+      <FilePicker
+        label="Resume"
+        kind="document"
+        value={resumeUrl}
+        onChange={(v) => setValue("resume", v, { shouldDirty: true })}
         error={errors.resume?.message}
-        {...register("resume")}
+        hint="PDF, DOC, or DOCX. Max 5MB."
       />
       <TextField
         label="Contact email"
@@ -150,11 +159,16 @@ export function ProfileForm({
 }
 
 const resumeSchema = z.object({
-  fileName: requiredString,
+  fileName: optionalString,
   fileUrl: z.string().trim().url("Enter a valid URL"),
   mimeType: optionalString,
   size: optionalNumber
 });
+
+function fileNameFromUrl(url: string): string {
+  const base = url.split("?")[0].split("/").pop() ?? "";
+  return base || url;
+}
 
 export function ResumeForm({
   defaultValues,
@@ -163,44 +177,40 @@ export function ResumeForm({
   onCancel
 }: ResourceFormProps<Resume>) {
   const {
-    register,
     handleSubmit,
+    setValue,
+    control,
     formState: { errors }
   } = useForm({
     resolver: zodResolver(resumeSchema),
     defaultValues
   });
+  const fileUrl = useWatch({ control, name: "fileUrl" });
+  const fileName = useWatch({ control, name: "fileName" });
 
   return (
     <FormShell
-      onSubmit={handleSubmit((v) => onSubmit(v))}
+      onSubmit={handleSubmit((v) =>
+        onSubmit({ ...v, fileName: v.fileName ?? fileNameFromUrl(v.fileUrl) })
+      )}
       onCancel={onCancel}
       submitting={submitting}
     >
-      <TextField
-        label="File name"
-        id="fileName"
-        error={errors.fileName?.message}
-        {...register("fileName")}
-      />
-      <TextField
-        label="File URL"
-        id="fileUrl"
+      <FilePicker
+        label="Resume file"
+        kind="document"
+        value={fileUrl}
+        onChange={(url) => setValue("fileUrl", url, { shouldDirty: true })}
+        onUploaded={(asset, file) => {
+          setValue("fileName", file.name, { shouldDirty: true });
+          setValue("fileUrl", asset.url, { shouldDirty: true });
+          setValue("mimeType", file.type || "application/pdf", { shouldDirty: true });
+          setValue("size", asset.bytes, { shouldDirty: true });
+        }}
         error={errors.fileUrl?.message}
-        {...register("fileUrl")}
+        hint="PDF, DOC, or DOCX. Max 5MB."
       />
-      <TextField
-        label="MIME type"
-        id="mimeType"
-        error={errors.mimeType?.message}
-        {...register("mimeType")}
-      />
-      <NumberField
-        label="Size (bytes)"
-        id="size"
-        error={errors.size?.message}
-        {...register("size")}
-      />
+      {fileName && <p className="text-xs text-muted-foreground">File name: {fileName}</p>}
     </FormShell>
   );
 }
@@ -505,7 +515,12 @@ export function ProjectForm({
         value={technologies}
         onChange={(v) => setValue("technologies", v)}
       />
-      <ListField label="Image URLs" value={images} onChange={(v) => setValue("images", v)} />
+      <ImageListPicker
+        label="Images"
+        value={images}
+        onChange={(v) => setValue("images", v)}
+        hint="PNG, JPG, WebP, GIF, or SVG. Max 5MB each."
+      />
       <div className="grid grid-cols-2 gap-4">
         <NumberField
           label="Order"
@@ -804,6 +819,7 @@ export function TestimonialForm({
     defaultValues: { published: false, ...defaultValues }
   });
   const published = useWatch({ control, name: "published" });
+  const avatar = useWatch({ control, name: "avatar" });
 
   return (
     <FormShell
@@ -833,11 +849,13 @@ export function TestimonialForm({
         rows={3}
         {...register("quote")}
       />
-      <TextField
-        label="Avatar URL"
-        id="avatar"
+      <FilePicker
+        label="Avatar"
+        kind="image"
+        value={avatar}
+        onChange={(v) => setValue("avatar", v, { shouldDirty: true })}
         error={errors.avatar?.message}
-        {...register("avatar")}
+        hint="PNG, JPG, WebP, GIF, or SVG. Max 5MB."
       />
       <NumberField label="Order" id="order" error={errors.order?.message} {...register("order")} />
       <SwitchField
