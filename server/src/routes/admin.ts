@@ -13,6 +13,7 @@ import { requireAuth } from "../middleware/auth.js";
 import { ContactSettingsModel } from "../models/contactSettings.model.js";
 import { EducationModel } from "../models/education.model.js";
 import { ExperienceModel } from "../models/experience.model.js";
+import { HeroModel } from "../models/hero.model.js";
 import { PricingModel } from "../models/pricing.model.js";
 import { ProcessModel } from "../models/process.model.js";
 import { ProfileModel } from "../models/profile.model.js";
@@ -37,6 +38,7 @@ import {
   testimonialUpdateSchema,
   testimonialWriteSchema
 } from "../validation/client.js";
+import { heroUpdateSchema, heroWriteSchema } from "../validation/hero.js";
 import {
   educationUpdateSchema,
   educationWriteSchema,
@@ -62,9 +64,11 @@ router.put(
   upsertOne(ProfileModel, profileWriteSchema, profileUpdateSchema)
 );
 router.put("/resume", requireAuth, upsertOne(ResumeModel, resumeWriteSchema, resumeUpdateSchema));
+router.put("/hero", requireAuth, upsertOne(HeroModel, heroWriteSchema, heroUpdateSchema));
 
 router.get("/profile", requireAuth, getOne(ProfileModel, "Profile"));
 router.get("/resume", requireAuth, getOne(ResumeModel, "Resume"));
+router.get("/hero", requireAuth, getOne(HeroModel, "Hero"));
 router.get("/contact-settings", requireAuth, getOne(ContactSettingsModel, "Contact settings"));
 router.get("/site-settings", requireAuth, getOne(SiteSettingsModel, "Site settings"));
 

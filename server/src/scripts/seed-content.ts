@@ -5,6 +5,7 @@ import { logger } from "../lib/logger.js";
 import { ContactSettingsModel } from "../models/contactSettings.model.js";
 import { EducationModel } from "../models/education.model.js";
 import { ExperienceModel } from "../models/experience.model.js";
+import { HeroModel } from "../models/hero.model.js";
 import { PricingModel } from "../models/pricing.model.js";
 import { ProcessModel } from "../models/process.model.js";
 import { ProfileModel } from "../models/profile.model.js";
@@ -45,6 +46,25 @@ async function seedContent(): Promise<void> {
       fileUrl: "https://example.com/mustafa-muhammad-cv.pdf",
       mimeType: "application/pdf",
       size: 0
+    }
+  ]);
+
+  await seedCollection("hero", HeroModel, [
+    {
+      eyebrow: "Hi, I'm",
+      heading: "Mustafa Muhammad",
+      subheading:
+        "Junior Software Developer building modern web and mobile experiences with React, Next.js, and Flutter.",
+      primaryCtaLabel: "View my work",
+      primaryCtaUrl: "#work",
+      secondaryCtaLabel: "Download resume",
+      secondaryCtaUrl: "#resume",
+      image: "",
+      backgroundType: "color",
+      backgroundColor: "#0a0a0a",
+      backgroundImage: "",
+      animated: true,
+      published: true
     }
   ]);
 

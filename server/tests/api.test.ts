@@ -198,6 +198,15 @@ describe("admin write endpoints", () => {
       .expect(200);
     expect(res.body.name).toBe("Updated Name");
   });
+
+  it("creates the hero singleton on first upsert", async () => {
+    const res = await request(app)
+      .put("/api/v1/admin/hero")
+      .set(authed())
+      .send({ heading: "Welcome", subheading: "Builds things", animated: true, published: true })
+      .expect(200);
+    expect(res.body.heading).toBe("Welcome");
+  });
 });
 
 describe("admin read endpoints", () => {
@@ -221,6 +230,17 @@ describe("admin read endpoints", () => {
   it("returns the profile singleton", async () => {
     const res = await request(app).get("/api/v1/admin/profile").set(authed()).expect(200);
     expect(res.body.name).toBe("Updated Name");
+  });
+
+  it("returns the hero singleton", async () => {
+    const res = await request(app).get("/api/v1/admin/hero").set(authed()).expect(200);
+    expect(res.body.heading).toBe("Welcome");
+  });
+
+  it("exposes the hero through the public API", async () => {
+    const res = await request(app).get("/api/v1/hero").expect(200);
+    expect(res.body.heading).toBe("Welcome");
+    expect(res.body.published).toBe(true);
   });
 
   it("returns 404 for a missing singleton", async () => {

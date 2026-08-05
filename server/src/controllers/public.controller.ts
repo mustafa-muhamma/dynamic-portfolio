@@ -5,6 +5,7 @@ import type { LeanModel } from "../types/model.js";
 import { ContactSettingsModel } from "../models/contactSettings.model.js";
 import { EducationModel } from "../models/education.model.js";
 import { ExperienceModel } from "../models/experience.model.js";
+import { HeroModel } from "../models/hero.model.js";
 import { PricingModel } from "../models/pricing.model.js";
 import { ProcessModel } from "../models/process.model.js";
 import { ProfileModel } from "../models/profile.model.js";
@@ -50,5 +51,6 @@ export const listTestimonials = listController(TestimonialModel);
 
 export const getProfile = singleController(ProfileModel, "Profile");
 export const getResume = singleController(ResumeModel, "Resume");
+export const getHero = singleController(HeroModel, "Hero");
 export const getContactSettings = singleController(ContactSettingsModel, "Contact settings");
 export const getSiteSettings = singleController(SiteSettingsModel, "Site settings");

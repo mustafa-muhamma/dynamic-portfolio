@@ -2,6 +2,7 @@ export { AdminModel, type Admin } from "./admin.model.js";
 export { ContactSettingsModel, type ContactSettings } from "./contactSettings.model.js";
 export { EducationModel, type Education } from "./education.model.js";
 export { ExperienceModel, type Experience } from "./experience.model.js";
+export { HeroModel, type Hero } from "./hero.model.js";
 export { InquiryModel, type Inquiry } from "./inquiry.model.js";
 export { PricingModel, type Pricing } from "./pricing.model.js";
 export { ProcessModel, type Process } from "./process.model.js";
