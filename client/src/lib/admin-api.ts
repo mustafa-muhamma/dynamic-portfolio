@@ -2,7 +2,7 @@ const BASE = "/api/admin";
 
 let loggingOut = false;
 
-async function handleUnauthorized(): Promise<void> {
+export async function handleUnauthorized(): Promise<void> {
   if (loggingOut) return;
   loggingOut = true;
   try {
