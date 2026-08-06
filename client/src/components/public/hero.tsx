@@ -15,6 +15,7 @@ import {
   useSocialLinks,
   useTestimonials
 } from "@/hooks/use-public";
+import { cn } from "@/lib/utils";
 
 const EASE = [0.21, 0.47, 0.32, 0.98] as const;
 
@@ -83,10 +84,18 @@ export function Hero() {
 
       <div className="absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-background to-transparent" />
 
-      <div className="relative z-10 mx-auto grid w-full max-w-6xl gap-16 md:grid-cols-[1fr_1fr] md:items-center md:gap-16 lg:gap-24">
+      <div
+        className={cn(
+          "relative z-10 mx-auto grid w-full max-w-6xl gap-16",
+          photo ? "md:grid-cols-[1fr_1fr] md:items-center md:gap-16 lg:gap-24" : "md:grid-cols-1"
+        )}
+      >
         <motion.div
           style={{ y: textY, opacity: fade }}
-          className="flex flex-col items-center text-center md:items-start md:text-left"
+          className={cn(
+            "flex flex-col items-center text-center",
+            photo && "md:items-start md:text-left"
+          )}
         >
           {hero?.eyebrow?.trim() ? (
             <motion.div
@@ -136,7 +145,10 @@ export function Hero() {
               initial={{ opacity: 0, y: 16 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.7, delay: 0.55, ease: EASE }}
-              className="mt-10 flex flex-wrap items-center justify-center gap-4 md:justify-start"
+              className={cn(
+                "mt-10 flex flex-wrap items-center justify-center gap-4",
+                photo && "md:justify-start"
+              )}
             >
               {hasPrimary ? (
                 <Magnetic>
