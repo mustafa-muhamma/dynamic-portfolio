@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Geist, Geist_Mono, Space_Grotesk } from "next/font/google";
 import "./globals.css";
 import { Providers } from "@/lib/providers";
 
@@ -13,6 +13,11 @@ const geistMono = Geist_Mono({
   subsets: ["latin"]
 });
 
+const spaceGrotesk = Space_Grotesk({
+  variable: "--font-space-grotesk",
+  subsets: ["latin"]
+});
+
 export const metadata: Metadata = {
   title: "Portfolio",
   description: "A content-managed portfolio platform"
@@ -20,7 +25,10 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="en" className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}>
+    <html
+      lang="en"
+      className={`${geistSans.variable} ${geistMono.variable} ${spaceGrotesk.variable} h-full antialiased`}
+    >
       <body className="min-h-full flex flex-col">
         <Providers>{children}</Providers>
       </body>
