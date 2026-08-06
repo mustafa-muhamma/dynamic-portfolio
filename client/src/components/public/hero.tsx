@@ -71,7 +71,7 @@ export function Hero() {
       className="relative flex min-h-dvh items-center justify-center overflow-hidden px-6 py-28 md:px-8"
     >
       <div className="site-grid absolute inset-0 [mask-image:radial-gradient(ellipse_65%_60%_at_50%_40%,black,transparent)]" />
-      <GradientOrbs className="opacity-90" />
+      <GradientOrbs className="opacity-60 dark:opacity-90" />
 
       {hero?.backgroundImage ? (
         <img
@@ -144,7 +144,7 @@ export function Hero() {
                     href={primary.href}
                     target={primary.external ? "_blank" : undefined}
                     rel={primary.external ? "noreferrer" : undefined}
-                    className="bg-gradient-brand group inline-flex items-center gap-2 rounded-full px-7 py-3.5 text-sm font-semibold text-white shadow-lg shadow-brand-1/20 transition-shadow hover:shadow-brand-1/40"
+                    className="btn-gradient group inline-flex items-center gap-2 rounded-full px-7 py-3.5 text-sm font-semibold text-white"
                   >
                     {hero?.primaryCtaLabel}
                     <ArrowUpRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
@@ -213,10 +213,10 @@ export function Hero() {
         {photo ? (
           <motion.div
             style={{ y: portraitY, opacity: fade }}
-            className="relative mx-auto flex w-full max-w-sm items-center justify-center md:max-w-md"
+            className="relative mx-auto flex w-full max-w-[19rem] items-center justify-center sm:max-w-sm md:max-w-md"
           >
-            <div className="absolute -inset-20 rounded-full bg-gradient-brand opacity-20 blur-3xl animate-pulse-glow" />
-            <div className="absolute -inset-10 rounded-full bg-gradient-brand opacity-10 blur-2xl" />
+            <div className="absolute -inset-20 rounded-full bg-gradient-brand/15 blur-3xl dark:bg-gradient-brand/25" />
+            <div className="absolute -inset-10 rounded-full bg-gradient-brand/5 blur-2xl dark:bg-gradient-brand/10" />
 
             <motion.div
               initial={{ opacity: 0, scale: 0.85 }}
@@ -239,7 +239,7 @@ export function Hero() {
                     <img
                       src={photo}
                       alt={profile?.name ?? "Portrait"}
-                      className="aspect-square w-full object-cover transition-transform duration-700 group-hover:scale-[1.04]"
+                      className="aspect-square w-full object-cover object-[50%_25%] transition-transform duration-700 group-hover:scale-[1.04]"
                     />
                   </div>
                   <div

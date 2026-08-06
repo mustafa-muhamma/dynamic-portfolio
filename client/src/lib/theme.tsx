@@ -84,6 +84,7 @@ export function ThemeProvider({
         className={cn(
           "min-h-dvh bg-background text-foreground transition-colors duration-300",
           theme === "dark" && "dark",
+          theme === "light" && "public-light",
           className
         )}
       >
