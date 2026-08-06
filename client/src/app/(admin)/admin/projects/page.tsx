@@ -2,6 +2,7 @@
 
 import { CollectionManager } from "@/components/admin/collection-manager";
 import { ProjectForm } from "@/components/admin/forms";
+import { Badge } from "@/components/ui/badge";
 
 export default function ProjectsPage() {
   return (
@@ -13,8 +14,9 @@ export default function ProjectsPage() {
       getLabel={(row) => row.title}
       getSubtitle={(row) => row.role ?? ""}
       searchText={(row) =>
-        `${row.title} ${row.role ?? ""} ${(row.technologies ?? []).join(" ")}`.trim()
+        `${row.title} ${row.slug ?? ""} ${row.role ?? ""} ${(row.technologies ?? []).join(" ")}`.trim()
       }
+      extraStatus={(row) => (row.inProgress ? <Badge variant="outline">In progress</Badge> : null)}
     />
   );
 }

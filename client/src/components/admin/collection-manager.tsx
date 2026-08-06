@@ -1,7 +1,7 @@
 "use client";
 
 import { MoreHorizontal, Pencil, Plus, Search, Trash2 } from "lucide-react";
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 
 import {
   Dialog,
@@ -53,6 +53,7 @@ type CollectionManagerProps<K extends ContentResource> = {
   getLabel: (row: CollectionDoc[K]) => string;
   getSubtitle?: (row: CollectionDoc[K]) => string;
   searchText?: (row: CollectionDoc[K]) => string;
+  extraStatus?: (row: CollectionDoc[K]) => ReactNode;
 };
 
 export function CollectionManager<K extends ContentResource>({
@@ -62,7 +63,8 @@ export function CollectionManager<K extends ContentResource>({
   Form,
   getLabel,
   getSubtitle,
-  searchText
+  searchText,
+  extraStatus
 }: CollectionManagerProps<K>) {
   const list = useCollectionList(resource);
   const createItem = useCreateItem(resource);
@@ -172,9 +174,12 @@ export function CollectionManager<K extends ContentResource>({
                     )}
                   </TableCell>
                   <TableCell>
-                    <Badge variant={row.published ? "default" : "secondary"}>
-                      {row.published ? "Published" : "Draft"}
-                    </Badge>
+                    <div className="flex flex-wrap items-center gap-1.5">
+                      <Badge variant={row.published ? "default" : "secondary"}>
+                        {row.published ? "Published" : "Draft"}
+                      </Badge>
+                      {extraStatus ? extraStatus(row) : null}
+                    </div>
                   </TableCell>
                   <TableCell>
                     <DropdownMenu>

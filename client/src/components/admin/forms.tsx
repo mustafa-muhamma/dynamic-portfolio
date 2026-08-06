@@ -8,6 +8,7 @@ import { z } from "zod";
 import {
   ColorField,
   ListField,
+  MonthField,
   NumberField,
   SwitchField,
   TextAreaField,
@@ -385,6 +386,8 @@ export function ExperienceForm({
   const bullets = useWatch({ control, name: "bullets" }) as string[] | undefined;
   const current = useWatch({ control, name: "current" });
   const published = useWatch({ control, name: "published" });
+  const start = useWatch({ control, name: "start" });
+  const end = useWatch({ control, name: "end" });
 
   return (
     <FormShell
@@ -408,19 +411,21 @@ export function ExperienceForm({
         {...register("location")}
       />
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-        <TextField
+        <MonthField
           label="Start"
           id="start"
           placeholder="2020-01"
           error={errors.start?.message}
-          {...register("start")}
+          value={start}
+          onChange={(v) => setValue("start", v, { shouldDirty: true })}
         />
-        <TextField
+        <MonthField
           label="End"
           id="end"
           placeholder="2023-06"
           error={errors.end?.message}
-          {...register("end")}
+          value={end}
+          onChange={(v) => setValue("end", v, { shouldDirty: true })}
         />
       </div>
       <TextAreaField
@@ -482,6 +487,8 @@ export function EducationForm({
     defaultValues: { published: false, ...defaultValues }
   });
   const published = useWatch({ control, name: "published" });
+  const start = useWatch({ control, name: "start" });
+  const end = useWatch({ control, name: "end" });
 
   return (
     <FormShell
@@ -502,8 +509,22 @@ export function EducationForm({
         {...register("school")}
       />
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-        <TextField label="Start" id="start" error={errors.start?.message} {...register("start")} />
-        <TextField label="End" id="end" error={errors.end?.message} {...register("end")} />
+        <MonthField
+          label="Start"
+          id="start"
+          placeholder="2020-01"
+          error={errors.start?.message}
+          value={start}
+          onChange={(v) => setValue("start", v, { shouldDirty: true })}
+        />
+        <MonthField
+          label="End"
+          id="end"
+          placeholder="2023-06"
+          error={errors.end?.message}
+          value={end}
+          onChange={(v) => setValue("end", v, { shouldDirty: true })}
+        />
       </div>
       <TextAreaField
         label="Summary"
@@ -592,16 +613,31 @@ export function SkillForm({
 
 const projectSchema = z.object({
   title: requiredString,
+  slug: z
+    .string()
+    .trim()
+    .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/i, "Lowercase letters, numbers, and dashes")
+    .optional(),
   description: optionalString,
   role: optionalString,
+  date: optionalString,
   link: optionalString,
   repo: optionalString,
   technologies: optionalArray,
   images: optionalArray,
   featured: optionalBool,
+  inProgress: optionalBool,
   order: optionalNumber,
   published: optionalBool
 });
+
+function slugify(value: string): string {
+  return value
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .slice(0, 60);
+}
 
 export function ProjectForm({
   defaultValues,
@@ -617,12 +653,15 @@ export function ProjectForm({
     formState: { errors }
   } = useForm({
     resolver: zodResolver(projectSchema),
-    defaultValues: { featured: false, published: false, ...defaultValues }
+    defaultValues: { featured: false, inProgress: false, published: false, ...defaultValues }
   });
   const technologies = useWatch({ control, name: "technologies" }) as string[] | undefined;
   const images = useWatch({ control, name: "images" }) as string[] | undefined;
   const featured = useWatch({ control, name: "featured" });
   const published = useWatch({ control, name: "published" });
+  const inProgress = useWatch({ control, name: "inProgress" });
+  const slug = useWatch({ control, name: "slug" });
+  const date = useWatch({ control, name: "date" });
 
   return (
     <FormShell
@@ -630,7 +669,25 @@ export function ProjectForm({
       onCancel={onCancel}
       submitting={submitting}
     >
-      <TextField label="Title" id="title" error={errors.title?.message} {...register("title")} />
+      <TextField
+        label="Title"
+        id="title"
+        error={errors.title?.message}
+        {...register("title", {
+          onChange: (e) => {
+            if (!slug && e.target.value) {
+              setValue("slug", slugify(e.target.value), { shouldDirty: true });
+            }
+          }
+        })}
+      />
+      <TextField
+        label="Slug"
+        id="slug"
+        error={errors.slug?.message}
+        hint="Used for the public detail page URL — auto-filled from the title."
+        {...register("slug")}
+      />
       <TextAreaField
         label="Description"
         id="description"
@@ -638,7 +695,18 @@ export function ProjectForm({
         rows={3}
         {...register("description")}
       />
-      <TextField label="Role" id="role" error={errors.role?.message} {...register("role")} />
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <TextField label="Role" id="role" error={errors.role?.message} {...register("role")} />
+        <MonthField
+          label="Date"
+          id="date"
+          placeholder="2024-03"
+          hint="When the project was built."
+          error={errors.date?.message}
+          value={date}
+          onChange={(v) => setValue("date", v, { shouldDirty: true })}
+        />
+      </div>
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <TextField label="Link" id="link" error={errors.link?.message} {...register("link")} />
         <TextField
@@ -659,20 +727,21 @@ export function ProjectForm({
         onChange={(v) => setValue("images", v)}
         hint="PNG, JPG, WebP, GIF, or SVG. Max 5MB each."
       />
+      <NumberField label="Order" id="order" error={errors.order?.message} {...register("order")} />
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-        <NumberField
-          label="Order"
-          id="order"
-          error={errors.order?.message}
-          {...register("order")}
+        <SwitchField
+          label="Featured"
+          description="Highlight on the public site"
+          checked={!!featured}
+          onCheckedChange={(c) => setValue("featured", c)}
+        />
+        <SwitchField
+          label="In progress"
+          description="A project I am currently working on"
+          checked={!!inProgress}
+          onCheckedChange={(c) => setValue("inProgress", c)}
         />
       </div>
-      <SwitchField
-        label="Featured"
-        description="Highlight on the public site"
-        checked={!!featured}
-        onCheckedChange={(c) => setValue("featured", c)}
-      />
       <SwitchField
         label="Published"
         description="Visible on the public site"

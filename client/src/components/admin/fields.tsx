@@ -1,5 +1,6 @@
 "use client";
 
+import { Calendar } from "lucide-react";
 import type { ReactNode } from "react";
 
 import { Input } from "@/components/ui/input";
@@ -48,6 +49,64 @@ export function NumberField({ label, error, hint, id, ...props }: InputProps) {
   return (
     <Field label={label} htmlFor={id} error={error} hint={hint}>
       <Input id={id} type="number" step="any" aria-invalid={!!error} {...props} />
+    </Field>
+  );
+}
+
+function toMonthInput(value?: string): string {
+  if (!value) return "";
+  const full = value.trim().match(/^(\d{4})-(\d{2})$/);
+  if (full) return `${full[1]}-${full[2]}`;
+  const year = value.trim().match(/^(\d{4})$/);
+  if (year) return `${year[1]}-01`;
+  return "";
+}
+
+export function MonthField({
+  label,
+  error,
+  hint,
+  id,
+  value,
+  onChange,
+  placeholder
+}: {
+  label: string;
+  error?: string;
+  hint?: string;
+  id?: string;
+  value?: string;
+  onChange: (value: string) => void;
+  placeholder?: string;
+}) {
+  return (
+    <Field label={label} htmlFor={id} error={error} hint={hint}>
+      <div className="relative">
+        <Input
+          id={id}
+          value={value ?? ""}
+          placeholder={placeholder}
+          aria-invalid={!!error}
+          onChange={(e) => onChange(e.target.value)}
+          className="pr-10"
+        />
+        <label
+          className="absolute top-1 right-1 flex size-8 cursor-pointer items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+          title="Pick a month"
+        >
+          <Calendar className="size-4" />
+          <input
+            type="month"
+            tabIndex={-1}
+            aria-hidden="true"
+            className="absolute inset-0 cursor-pointer opacity-0"
+            value={toMonthInput(value)}
+            onChange={(e) => {
+              if (e.target.value) onChange(e.target.value);
+            }}
+          />
+        </label>
+      </div>
     </Field>
   );
 }
