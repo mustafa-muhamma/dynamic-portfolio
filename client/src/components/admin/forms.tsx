@@ -16,6 +16,7 @@ import {
 } from "@/components/admin/fields";
 import { FilePicker, ImageListPicker } from "@/components/admin/file-picker";
 import type { ResourceFormProps } from "@/components/admin/collection-manager";
+import { useCollectionList } from "@/hooks/use-content";
 import { Button } from "@/components/ui/button";
 import {
   Select,
@@ -1005,6 +1006,8 @@ const testimonialSchema = z.object({
   company: optionalString,
   quote: requiredString,
   avatar: optionalString,
+  projectId: optionalString,
+  images: optionalArray,
   order: optionalNumber,
   published: optionalBool
 });
@@ -1027,6 +1030,12 @@ export function TestimonialForm({
   });
   const published = useWatch({ control, name: "published" });
   const avatar = useWatch({ control, name: "avatar" });
+  const images = useWatch({ control, name: "images" }) as string[] | undefined;
+  const projectId = useWatch({ control, name: "projectId" });
+  const projects = useCollectionList("projects");
+  const projectOptions = (Array.isArray(projects.data) ? projects.data : []).sort(
+    (a, b) => (b.order ?? 0) - (a.order ?? 0)
+  );
 
   return (
     <FormShell
@@ -1063,6 +1072,36 @@ export function TestimonialForm({
         onChange={(v) => setValue("avatar", v, { shouldDirty: true })}
         error={errors.avatar?.message}
         hint="PNG, JPG, WebP, GIF, or SVG. Max 5MB."
+      />
+      <div>
+        <span className="mb-1.5 block text-sm font-medium">Related project</span>
+        <Select
+          value={projectId || "none"}
+          onValueChange={(v) =>
+            setValue("projectId", v === "none" ? "" : (v ?? ""), { shouldDirty: true })
+          }
+        >
+          <SelectTrigger className="w-full">
+            <SelectValue placeholder="Select a project (optional)" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="none">No project</SelectItem>
+            {projectOptions.map((project) => (
+              <SelectItem key={project.id} value={project.id}>
+                {project.title}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        <p className="mt-1.5 text-xs text-muted-foreground">
+          Shows on this review and on the project&apos;s detail page.
+        </p>
+      </div>
+      <ImageListPicker
+        label="Proof screenshots"
+        value={images}
+        onChange={(v) => setValue("images", v, { shouldDirty: true })}
+        hint="Optional screenshots for extra trust. PNG, JPG, WebP, GIF, or SVG. Max 5MB each."
       />
       <NumberField label="Order" id="order" error={errors.order?.message} {...register("order")} />
       <SwitchField

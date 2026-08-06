@@ -120,6 +120,8 @@ export type Testimonial = ApiDoc<{
   company?: string;
   quote: string;
   avatar?: string;
+  projectId?: string;
+  images?: string[];
   order?: number;
   published?: boolean;
 }>;
