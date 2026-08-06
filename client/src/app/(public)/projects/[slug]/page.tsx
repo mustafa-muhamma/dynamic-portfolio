@@ -17,7 +17,7 @@ import { useParams } from "next/navigation";
 import { useState } from "react";
 
 import { GradientOrbs, Reveal } from "@/components/public/motion";
-import { useProjectBySlug } from "@/hooks/use-public";
+import { useProjectBySlug, useTestimonials } from "@/hooks/use-public";
 import { cn } from "@/lib/utils";
 
 function formatMonth(value?: string): string {
@@ -132,6 +132,70 @@ function Gallery({ images, title }: { images: string[]; title: string }) {
   );
 }
 
+function ProjectReviews({ projectId }: { projectId: string }) {
+  const { data: testimonials } = useTestimonials();
+  const reviews = (testimonials ?? []).filter((item) => item.projectId === projectId);
+
+  if (reviews.length === 0) return null;
+
+  return (
+    <Reveal className="mt-14">
+      <h2 className="font-heading text-xl font-semibold tracking-tight text-foreground">
+        Client reviews
+      </h2>
+      <div className="mt-6 grid gap-6 md:grid-cols-2">
+        {reviews.map((review) => (
+          <figure
+            key={review.id}
+            className="flex flex-col rounded-3xl border border-border bg-background/60 p-7 backdrop-blur"
+          >
+            <blockquote className="text-base leading-relaxed text-foreground">
+              &ldquo;{review.quote}&rdquo;
+            </blockquote>
+            {review.images && review.images.length > 0 ? (
+              <div className="mt-5 grid grid-cols-3 gap-2">
+                {review.images.map((src, index) => (
+                  <div key={index} className="overflow-hidden rounded-lg border border-border">
+                    <img
+                      src={src}
+                      alt={`Proof screenshot ${index + 1}`}
+                      className="aspect-video w-full object-cover"
+                    />
+                  </div>
+                ))}
+              </div>
+            ) : null}
+            <figcaption className="mt-6 flex items-center gap-3 border-t border-border pt-5">
+              {review.avatar ? (
+                <img
+                  src={review.avatar}
+                  alt={review.author}
+                  className="size-11 shrink-0 rounded-full object-cover"
+                />
+              ) : (
+                <span
+                  aria-hidden="true"
+                  className="flex size-11 shrink-0 items-center justify-center rounded-full bg-gradient-brand font-heading text-sm font-bold text-white"
+                >
+                  {review.author.charAt(0).toUpperCase()}
+                </span>
+              )}
+              <div className="min-w-0">
+                <p className="font-heading font-semibold text-foreground">{review.author}</p>
+                {review.role || review.company ? (
+                  <p className="truncate text-sm text-muted-foreground">
+                    {[review.role, review.company].filter(Boolean).join(" · ")}
+                  </p>
+                ) : null}
+              </div>
+            </figcaption>
+          </figure>
+        ))}
+      </div>
+    </Reveal>
+  );
+}
+
 export default function ProjectPage() {
   const { slug } = useParams<{ slug: string }>();
   const { data: project, isPending } = useProjectBySlug(slug);
@@ -239,6 +303,8 @@ export default function ProjectPage() {
                 </p>
               </Reveal>
             ) : null}
+
+            <ProjectReviews projectId={project.id} />
           </div>
 
           <aside className="lg:sticky lg:top-28 lg:self-start">
