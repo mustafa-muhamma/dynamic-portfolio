@@ -1,5 +1,3 @@
-import { API_URL } from "./config";
-
 export class PublicApiError extends Error {
   status: number;
 
@@ -10,7 +8,7 @@ export class PublicApiError extends Error {
 }
 
 async function getJson<T>(path: string): Promise<T> {
-  const res = await fetch(`${API_URL}${path}`);
+  const res = await fetch(`/api/public${path}`);
   if (!res.ok) {
     throw new PublicApiError(res.status, `Request failed (${res.status})`);
   }
@@ -37,7 +35,7 @@ export type InquiryInput = {
 };
 
 export async function submitInquiry(input: InquiryInput): Promise<void> {
-  const res = await fetch(`${API_URL}/inquiries`, {
+  const res = await fetch("/api/public/inquiries", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(input)
