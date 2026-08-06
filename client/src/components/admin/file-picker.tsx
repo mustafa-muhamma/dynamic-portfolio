@@ -1,12 +1,14 @@
 /* eslint-disable @next/next/no-img-element */
 "use client";
 
-import { useId, useRef, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import { FileText, Link2, Loader2, Upload, X } from "lucide-react";
 
+import { ImageCropModal } from "@/components/admin/image-crop-modal";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { normalizeImage } from "@/lib/crop";
 import {
   DOCUMENT_ACCEPT,
   IMAGE_ACCEPT,
@@ -49,19 +51,18 @@ export function FilePicker({
   const inputRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
   const [uploadError, setUploadError] = useState<string>();
+  const [cropFile, setCropFile] = useState<File | null>(null);
+  const [cropSrc, setCropSrc] = useState<string>();
+
+  useEffect(() => {
+    return () => {
+      if (cropSrc) URL.revokeObjectURL(cropSrc);
+    };
+  }, [cropSrc]);
 
   const accept = kind === "document" ? DOCUMENT_ACCEPT : IMAGE_ACCEPT;
 
-  async function handleFiles(files: FileList | null) {
-    const file = files?.[0];
-    if (!file) return;
-    const validation = validateFile(file, kind);
-    if (validation) {
-      setUploadError(validation);
-      if (inputRef.current) inputRef.current.value = "";
-      return;
-    }
-    setUploadError(undefined);
+  async function uploadAndSet(file: File) {
     setUploading(true);
     try {
       const asset = await uploadFile(file, kind);
@@ -73,6 +74,48 @@ export function FilePicker({
       setUploading(false);
       if (inputRef.current) inputRef.current.value = "";
     }
+  }
+
+  function handleFiles(files: FileList | null) {
+    const file = files?.[0];
+    if (!file) return;
+    const validation = validateFile(file, kind);
+    if (validation) {
+      setUploadError(validation);
+      if (inputRef.current) inputRef.current.value = "";
+      return;
+    }
+    setUploadError(undefined);
+    if (kind === "image") {
+      void openCropModal(file);
+      return;
+    }
+    void uploadAndSet(file);
+  }
+
+  async function openCropModal(file: File) {
+    const normalized = await normalizeImage(file);
+    setCropSrc(URL.createObjectURL(normalized));
+    setCropFile(file);
+  }
+
+  function closeCrop() {
+    setCropFile(null);
+    setCropSrc(undefined);
+    if (inputRef.current) inputRef.current.value = "";
+  }
+
+  async function saveCropped(blob: Blob) {
+    if (!cropFile) return;
+    const cropped = new File([blob], cropFile.name, { type: blob.type });
+    await uploadAndSet(cropped);
+    closeCrop();
+  }
+
+  async function skipCrop() {
+    if (!cropFile) return;
+    await uploadAndSet(cropFile);
+    closeCrop();
   }
 
   return (
@@ -140,6 +183,18 @@ export function FilePicker({
           placeholder={kind === "document" ? "Or paste a file URL" : "Or paste an image URL"}
         />
       </div>
+
+      {cropSrc && cropFile ? (
+        <ImageCropModal
+          src={cropSrc}
+          fileName={cropFile.name}
+          aspect={1}
+          uploading={uploading}
+          onCancel={closeCrop}
+          onSave={saveCropped}
+          onSkip={skipCrop}
+        />
+      ) : null}
     </div>
   );
 }
