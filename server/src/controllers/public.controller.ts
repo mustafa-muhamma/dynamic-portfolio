@@ -1,4 +1,5 @@
 import type { Request, Response } from "express";
+import mongoose from "mongoose";
 
 import { toApiDoc } from "../lib/serialize.js";
 import type { LeanModel } from "../types/model.js";
@@ -46,9 +47,15 @@ export async function getProjectBySlug(req: Request, res: Response): Promise<voi
     res.status(404).json({ error: { code: "NOT_FOUND", message: "Project not found" } });
     return;
   }
-  const doc = (await ProjectModel.findOne({ slug, published: true }).lean()) as {
-    _id: unknown;
-  } | null;
+  const query = mongoose.isValidObjectId(slug)
+    ? {
+        $or: [
+          { slug, published: true },
+          { _id: slug, published: true }
+        ]
+      }
+    : { slug, published: true };
+  const doc = (await ProjectModel.findOne(query).lean()) as { _id: unknown } | null;
   if (!doc) {
     res.status(404).json({ error: { code: "NOT_FOUND", message: "Project not found" } });
     return;

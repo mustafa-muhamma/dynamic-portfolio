@@ -21,15 +21,9 @@ import { cn } from "@/lib/utils";
 
 const SLIDE_INTERVAL = 4500;
 
-function slugify(value: string): string {
-  return value
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "");
-}
-
 function projectHref(project: Project): string {
-  return `/projects/${project.slug?.trim() || slugify(project.id)}`;
+  const slug = project.slug?.trim();
+  return slug ? `/projects/${encodeURIComponent(slug)}` : `/projects/${project.id}`;
 }
 
 function formatMonth(value?: string): string {
