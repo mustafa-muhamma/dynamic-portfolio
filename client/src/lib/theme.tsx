@@ -46,6 +46,10 @@ function getSnapshot(): Theme {
   return currentTheme;
 }
 
+function getServerSnapshot(): Theme {
+  return "dark";
+}
+
 function applyTheme(next: Theme) {
   currentTheme = next;
   try {
@@ -69,7 +73,7 @@ export function ThemeProvider({
   children: ReactNode;
   className?: string;
 }) {
-  const theme = useSyncExternalStore(subscribe, getSnapshot);
+  const theme = useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
 
   const setTheme = useCallback((next: Theme) => applyTheme(next), []);
   const toggleTheme = useCallback(() => applyTheme(currentTheme === "dark" ? "light" : "dark"), []);

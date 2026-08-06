@@ -218,6 +218,70 @@ export function SpotlightCard({
   );
 }
 
+export function TiltCard({
+  children,
+  className,
+  maxTilt = 14,
+  glare = true
+}: {
+  children: ReactNode;
+  className?: string;
+  maxTilt?: number;
+  glare?: boolean;
+}) {
+  const ref = useRef<HTMLDivElement>(null);
+  const reduce = useReducedMotion();
+  const rotateX = useMotionValue(0);
+  const rotateY = useMotionValue(0);
+  const glowX = useMotionValue(50);
+  const glowY = useMotionValue(50);
+  const springX = useSpring(rotateX, { stiffness: 180, damping: 18, mass: 0.4 });
+  const springY = useSpring(rotateY, { stiffness: 180, damping: 18, mass: 0.4 });
+  const glareBackground = useMotionTemplate`radial-gradient(circle at ${glowX}% ${glowY}%, rgba(255,255,255,0.16), transparent 60%)`;
+
+  function handleMove(e: React.MouseEvent<HTMLDivElement>) {
+    if (reduce || !ref.current) return;
+    const rect = ref.current.getBoundingClientRect();
+    const px = (e.clientX - rect.left) / rect.width;
+    const py = (e.clientY - rect.top) / rect.height;
+    rotateX.set((0.5 - py) * maxTilt);
+    rotateY.set((px - 0.5) * maxTilt);
+    glowX.set(px * 100);
+    glowY.set(py * 100);
+  }
+
+  function reset() {
+    rotateX.set(0);
+    rotateY.set(0);
+    glowX.set(50);
+    glowY.set(50);
+  }
+
+  return (
+    <motion.div
+      ref={ref}
+      onMouseMove={handleMove}
+      onMouseLeave={reset}
+      style={{
+        rotateX: springX,
+        rotateY: springY,
+        transformStyle: "preserve-3d",
+        perspective: 1200
+      }}
+      className={cn("group relative", className)}
+    >
+      {children}
+      {glare ? (
+        <motion.div
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-0 z-20 rounded-[inherit] opacity-0 transition-opacity duration-300 group-hover:opacity-100"
+          style={{ background: glareBackground }}
+        />
+      ) : null}
+    </motion.div>
+  );
+}
+
 export function GradientOrbs({ className }: { className?: string }) {
   return (
     <div
