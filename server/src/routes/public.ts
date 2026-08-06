@@ -5,6 +5,7 @@ import {
   getContactSettings,
   getHero,
   getProfile,
+  getProjectBySlug,
   getResume,
   getSiteSettings,
   listEducation,
@@ -25,6 +26,7 @@ router.get("/experience", listExperience);
 router.get("/education", listEducation);
 router.get("/skills", listSkills);
 router.get("/projects", listProjects);
+router.get("/projects/:slug", getProjectBySlug);
 router.get("/services", listServices);
 router.get("/pricing", listPricing);
 router.get("/process", listProcess);

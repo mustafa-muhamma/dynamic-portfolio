@@ -231,52 +231,64 @@ async function seedContent(): Promise<void> {
   await seedCollection("projects", ProjectModel, [
     {
       title: "Codexa Platform",
+      slug: "codexa-platform",
       description:
         "Full learning and community platform featuring authentication, course management, user dashboards, and interactive community features. ITI final project.",
       role: "Frontend Developer",
+      date: "2024-06",
       link: "https://codexa-nine.vercel.app/",
       repo: "https://github.com/iti-frontend/Codexa",
       technologies: ["Next.js", "Zustand", "ShadCN UI"],
       images: [],
       featured: true,
+      inProgress: false,
       order: 0,
       published: true
     },
     {
       title: "Furnitura-React",
+      slug: "furnitura-react",
       description:
         "Responsive e-commerce frontend with product listing, cart functionality, dynamic filtering, and reusable components.",
       role: "Frontend Developer",
+      date: "2023-09",
       link: "https://furnitura-react.vercel.app/",
       repo: "https://github.com/mustafa-muhamma/Furnitura-React",
       technologies: ["React.js", "Tailwind CSS", "Redux"],
       images: [],
       featured: false,
+      inProgress: false,
       order: 1,
       published: true
     },
     {
       title: "FilmVera Mobile App",
+      slug: "filmvera-mobile-app",
       description:
         "Cross-platform movie application built with React Native and Expo, with optimized UI components and dynamic content rendering.",
       role: "Mobile Developer",
+      date: "2024-01",
       link: "",
       repo: "https://github.com/mustafa-muhamma/film_vera-mobile-app",
       technologies: ["React Native", "Expo", "Context API"],
       images: [],
       featured: false,
+      inProgress: true,
       order: 2,
       published: true
     },
     {
       title: "Egypt Stock Market Demo",
+      slug: "egypt-stock-market-demo",
       description: "Modern stock market dashboard built with Next.js and API integrations.",
       role: "Frontend Developer",
+      date: "2024-03",
       link: "https://egypt-stock-market-demo.vercel.app/",
       repo: "https://github.com/mustafa-muhamma/egypt-stock-market-demo",
       technologies: ["Next.js"],
       images: [],
       featured: false,
+      inProgress: false,
       order: 3,
       published: true
     }

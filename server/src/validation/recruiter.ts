@@ -61,13 +61,20 @@ export const skillUpdateSchema = skillWriteSchema.partial();
 
 export const projectWriteSchema = z.object({
   title: z.string().trim().min(1),
+  slug: z
+    .string()
+    .trim()
+    .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/i, "Use lowercase letters, numbers, and dashes")
+    .optional(),
   description: optionalString,
   role: optionalString,
+  date: optionalString,
   link: optionalString,
   repo: optionalString,
   technologies: optionalStringArray,
   images: optionalStringArray,
   featured: optionalBoolean,
+  inProgress: optionalBoolean,
   order: optionalNumber,
   published: optionalBoolean
 });

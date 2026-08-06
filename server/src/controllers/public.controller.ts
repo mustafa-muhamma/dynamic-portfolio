@@ -39,6 +39,23 @@ function singleController(model: LeanModel, label: string) {
   };
 }
 
+export async function getProjectBySlug(req: Request, res: Response): Promise<void> {
+  const raw = req.params.slug;
+  const slug = typeof raw === "string" ? raw.toLowerCase().trim() : "";
+  if (!slug) {
+    res.status(404).json({ error: { code: "NOT_FOUND", message: "Project not found" } });
+    return;
+  }
+  const doc = (await ProjectModel.findOne({ slug, published: true }).lean()) as {
+    _id: unknown;
+  } | null;
+  if (!doc) {
+    res.status(404).json({ error: { code: "NOT_FOUND", message: "Project not found" } });
+    return;
+  }
+  res.json(toApiDoc(doc));
+}
+
 export const listSocialLinks = listController(SocialLinkModel);
 export const listExperience = listController(ExperienceModel);
 export const listEducation = listController(EducationModel);
