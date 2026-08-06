@@ -93,6 +93,7 @@ const profileSchema = z.object({
   bio: optionalString,
   photo: optionalString,
   resume: optionalString,
+  yearsExperience: optionalNumber,
   contactEmail: z.string().trim().email("Enter a valid email address")
 });
 
@@ -159,6 +160,13 @@ export function ProfileForm({
         type="email"
         error={errors.contactEmail?.message}
         {...register("contactEmail")}
+      />
+      <NumberField
+        label="Years of experience"
+        id="yearsExperience"
+        error={errors.yearsExperience?.message}
+        hint="Used for the hero stats row. Leave empty to hide."
+        {...register("yearsExperience")}
       />
       {isEdit ? null : (
         <p className="text-xs text-muted-foreground">Create the profile to get started.</p>

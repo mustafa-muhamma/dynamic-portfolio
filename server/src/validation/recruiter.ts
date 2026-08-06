@@ -12,6 +12,7 @@ export const profileWriteSchema = z.object({
   bio: optionalString,
   photo: optionalString,
   resume: optionalString,
+  yearsExperience: z.number().int().min(0).optional(),
   contactEmail: z.string().trim().email()
 });
 export const profileUpdateSchema = profileWriteSchema.partial();

@@ -11,6 +11,7 @@ const profileSchema = new Schema(
     bio: { type: String, default: "" },
     photo: { type: String, default: "" },
     resume: { type: String, default: "" },
+    yearsExperience: { type: Number, default: 0, min: 0 },
     contactEmail: { type: String, required: true, trim: true }
   },
   { timestamps: true, versionKey: false }
