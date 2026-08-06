@@ -377,7 +377,22 @@ async function seedContent(): Promise<void> {
     }
   ]);
 
-  await seedCollection("testimonials", TestimonialModel, []);
+  const codexaProject = await ProjectModel.findOne({ slug: "codexa-platform" }).lean();
+
+  await seedCollection("testimonials", TestimonialModel, [
+    {
+      author: "ITI Final Project Panel",
+      role: "Reviewer",
+      company: "Information Technology Institute",
+      quote:
+        "Codexa shipped on time with a polished, responsive interface. The dashboard features and community flows were exactly as scoped.",
+      avatar: "",
+      projectId: codexaProject ? String(codexaProject._id) : "",
+      images: [],
+      order: 0,
+      published: true
+    }
+  ]);
 
   await seedCollection("contact-settings", ContactSettingsModel, [
     {

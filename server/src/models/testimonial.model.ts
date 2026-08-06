@@ -10,6 +10,8 @@ const testimonialSchema = new Schema(
     company: { type: String, default: "" },
     quote: { type: String, required: true },
     avatar: { type: String, default: "" },
+    projectId: { type: String, default: "" },
+    images: { type: [String], default: [] },
     order: { type: Number, default: 0 },
     published: { type: Boolean, default: false }
   },

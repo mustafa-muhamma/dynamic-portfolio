@@ -40,6 +40,8 @@ export const testimonialWriteSchema = z.object({
   company: optionalString,
   quote: z.string().trim().min(1),
   avatar: optionalString,
+  projectId: optionalString,
+  images: optionalStringArray,
   order: optionalNumber,
   published: optionalBoolean
 });
