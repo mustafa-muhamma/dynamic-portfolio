@@ -18,7 +18,7 @@ import {
   type SocialLink,
   type Testimonial
 } from "@/lib/content";
-import { getSingleton, listResource } from "@/lib/public-api";
+import { getResource, getSingleton, listResource } from "@/lib/public-api";
 
 const publicOptions = {
   staleTime: 0,
@@ -79,6 +79,15 @@ export function useSkills() {
 
 export function useProjects() {
   return usePublicList<Project>("/projects", "/projects");
+}
+
+export function useProjectBySlug(slug?: string) {
+  return useQuery<Project | undefined>({
+    queryKey: ["public", "project", slug],
+    queryFn: () => getResource<Project>(`/projects/${encodeURIComponent(slug ?? "")}`),
+    enabled: Boolean(slug),
+    ...publicOptions
+  });
 }
 
 export function useServices() {

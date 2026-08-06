@@ -67,13 +67,16 @@ export type Skill = ApiDoc<{
 
 export type Project = ApiDoc<{
   title: string;
+  slug?: string;
   description?: string;
   role?: string;
+  date?: string;
   link?: string;
   repo?: string;
   technologies?: string[];
   images?: string[];
   featured?: boolean;
+  inProgress?: boolean;
   order?: number;
   published?: boolean;
 }>;

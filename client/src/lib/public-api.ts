@@ -28,6 +28,15 @@ export async function getSingleton<T>(path: string): Promise<T | undefined> {
   }
 }
 
+export async function getResource<T>(path: string): Promise<T | undefined> {
+  try {
+    return await getJson<T>(path);
+  } catch (err) {
+    if (err instanceof PublicApiError && err.status === 404) return undefined;
+    throw err;
+  }
+}
+
 export type InquiryInput = {
   name: string;
   email: string;
