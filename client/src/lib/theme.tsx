@@ -1,6 +1,12 @@
 "use client";
 
-import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from "react";
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useSyncExternalStore,
+  type ReactNode
+} from "react";
 
 import { cn } from "@/lib/utils";
 
@@ -16,6 +22,40 @@ const STORAGE_KEY = "portfolio-theme";
 
 const ThemeContext = createContext<ThemeContextValue | null>(null);
 
+function readStoredTheme(): Theme {
+  try {
+    const stored = window.localStorage.getItem(STORAGE_KEY);
+    return stored === "light" ? "light" : "dark";
+  } catch {
+    return "dark";
+  }
+}
+
+let currentTheme: Theme = typeof window === "undefined" ? "dark" : readStoredTheme();
+
+const listeners = new Set<() => void>();
+
+function subscribe(listener: () => void) {
+  listeners.add(listener);
+  return () => {
+    listeners.delete(listener);
+  };
+}
+
+function getSnapshot(): Theme {
+  return currentTheme;
+}
+
+function applyTheme(next: Theme) {
+  currentTheme = next;
+  try {
+    window.localStorage.setItem(STORAGE_KEY, next);
+  } catch {
+    // storage unavailable — keep theme for this session only
+  }
+  listeners.forEach((listener) => listener());
+}
+
 /**
  * Scopes the theme to the public portfolio only. The `dark`/`light` class is
  * applied to a wrapper div, never to <html>, so the admin dashboard and login
@@ -29,25 +69,10 @@ export function ThemeProvider({
   children: ReactNode;
   className?: string;
 }) {
-  const [theme, setThemeState] = useState<Theme>("dark");
-  const [mounted, setMounted] = useState(false);
+  const theme = useSyncExternalStore(subscribe, getSnapshot);
 
-  useEffect(() => {
-    setMounted(true);
-    const stored = window.localStorage.getItem(STORAGE_KEY);
-    if (stored === "light" || stored === "dark") setThemeState(stored);
-  }, []);
-
-  useEffect(() => {
-    if (!mounted) return;
-    window.localStorage.setItem(STORAGE_KEY, theme);
-  }, [theme, mounted]);
-
-  const setTheme = useCallback((next: Theme) => setThemeState(next), []);
-  const toggleTheme = useCallback(
-    () => setThemeState((prev) => (prev === "dark" ? "light" : "dark")),
-    []
-  );
+  const setTheme = useCallback((next: Theme) => applyTheme(next), []);
+  const toggleTheme = useCallback(() => applyTheme(currentTheme === "dark" ? "light" : "dark"), []);
 
   return (
     <ThemeContext.Provider value={{ theme, setTheme, toggleTheme }}>
