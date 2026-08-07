@@ -249,7 +249,7 @@ export default function ProjectPage() {
           All projects
         </Link>
 
-        <div className="mt-10 grid gap-12 lg:grid-cols-[1.5fr_1fr] lg:gap-16">
+        <div className="mt-10 grid gap-12  lg:gap-16">
           <div>
             <Reveal>
               <div className="flex flex-wrap items-center gap-2">
