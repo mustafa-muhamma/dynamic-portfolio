@@ -7,6 +7,7 @@ import {
   Link2,
   ListOrdered,
   MessageSquareQuote,
+  Rocket,
   Settings,
   Tag,
   User,
@@ -30,6 +31,12 @@ const MODULES: { href: string; title: string; description: string; icon: LucideI
     title: "Experience",
     description: "Roles and responsibilities",
     icon: Briefcase
+  },
+  {
+    href: "/admin/hero",
+    title: "Hero",
+    description: "Landing hero heading and CTAs",
+    icon: Rocket
   },
   {
     href: "/admin/education",
