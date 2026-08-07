@@ -7,7 +7,7 @@ import { useProcess } from "@/hooks/use-public";
 export function Process() {
   const { data: process } = useProcess();
 
-  const items = process ? [...process].sort((a, b) => (b.order ?? 0) - (a.order ?? 0)) : [];
+  const items = process ? [...process].sort((a, b) => (a.order ?? 0) - (b.order ?? 0)) : [];
 
   if (items.length === 0) return null;
 
