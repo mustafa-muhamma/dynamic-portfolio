@@ -53,6 +53,14 @@ export function useResume() {
   return usePublicSingleton<Resume>("/resume", "/resume");
 }
 
+export function useResumeDownloadUrl() {
+  const { data: resume } = useResume();
+  const { data: profile } = useProfile();
+  const hasStoredResume = Boolean(resume?.fileName || resume?.fileUrl);
+  const resumeUrl = hasStoredResume ? "/api/public/resume/download" : profile?.resume?.trim() || "";
+  return { resumeUrl, hasStoredResume };
+}
+
 export function useContactSettings() {
   return usePublicSingleton<ContactSettings>("/contact-settings", "/contact-settings");
 }

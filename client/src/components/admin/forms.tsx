@@ -284,7 +284,6 @@ const heroSchema = z.object({
   primaryCtaLabel: optionalString,
   primaryCtaUrl: optionalString,
   secondaryCtaLabel: optionalString,
-  secondaryCtaUrl: optionalString,
   image: optionalString,
   backgroundType: z.enum(["color", "image"]).optional(),
   backgroundColor: optionalString,
@@ -334,10 +333,9 @@ export function HeroForm({
         <TextField label="Primary CTA URL" {...register("primaryCtaUrl")} />
         <TextField
           label="Secondary CTA label"
-          hint="e.g. Contact me"
+          hint="e.g. Download my resume — links to the uploaded resume file"
           {...register("secondaryCtaLabel")}
         />
-        <TextField label="Secondary CTA URL" {...register("secondaryCtaUrl")} />
       </div>
       <FilePicker
         label="Hero image"

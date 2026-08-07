@@ -13,7 +13,12 @@ import {
   TiltCard
 } from "@/components/public/motion";
 import { Section, SectionHeading } from "@/components/public/section";
-import { useContactSettings, useEducation, useProfile, useResume } from "@/hooks/use-public";
+import {
+  useContactSettings,
+  useEducation,
+  useProfile,
+  useResumeDownloadUrl
+} from "@/hooks/use-public";
 import { cn } from "@/lib/utils";
 
 function formatYearRange(start?: string, end?: string): string {
@@ -26,15 +31,13 @@ function formatYearRange(start?: string, end?: string): string {
 
 export function About() {
   const { data: profile } = useProfile();
-  const { data: resume } = useResume();
+  const { resumeUrl, hasStoredResume } = useResumeDownloadUrl();
   const { data: settings } = useContactSettings();
   const { data: education } = useEducation();
 
   const photo = profile?.photo || "";
   const bio = profile?.bio?.trim() || "";
   const bioParagraphs = bio.split(/\n+/).filter(Boolean);
-  const hasStoredResume = Boolean(resume?.fileName || resume?.fileUrl);
-  const resumeUrl = hasStoredResume ? "/api/public/resume/download" : profile?.resume?.trim() || "";
   const email = profile?.contactEmail?.trim() || "";
 
   const [copiedLabel, setCopiedLabel] = useState<string>();

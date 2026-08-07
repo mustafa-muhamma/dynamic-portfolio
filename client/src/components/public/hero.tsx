@@ -11,6 +11,7 @@ import {
   useHero,
   useProfile,
   useProjects,
+  useResumeDownloadUrl,
   useSkills,
   useSocialLinks,
   useTestimonials
@@ -41,15 +42,15 @@ export function Hero() {
   const { data: projects } = useProjects();
   const { data: skills } = useSkills();
   const { data: testimonials } = useTestimonials();
+  const { resumeUrl, hasStoredResume } = useResumeDownloadUrl();
 
   const heading = hero?.heading?.trim() || profile?.name || "Portfolio";
   const words = heading.split(/\s+/);
   const subheading = hero?.subheading || profile?.title || "";
   const photo = hero?.image || profile?.photo || "";
   const primary = CtaHref(hero?.primaryCtaUrl);
-  const secondary = CtaHref(hero?.secondaryCtaUrl);
   const hasPrimary = Boolean(hero?.primaryCtaLabel?.trim() && hero?.primaryCtaUrl?.trim());
-  const hasSecondary = Boolean(hero?.secondaryCtaLabel?.trim() && hero?.secondaryCtaUrl?.trim());
+  const hasSecondary = Boolean(hero?.secondaryCtaLabel?.trim() && resumeUrl);
 
   const yearsExperience =
     typeof profile?.yearsExperience === "number" ? profile.yearsExperience : null;
@@ -165,14 +166,23 @@ export function Hero() {
               ) : null}
               {hasSecondary ? (
                 <Magnetic>
-                  <Link
-                    href={secondary.href}
-                    target={secondary.external ? "_blank" : undefined}
-                    rel={secondary.external ? "noreferrer" : undefined}
-                    className="inline-flex items-center gap-2 rounded-full border border-border px-7 py-3.5 text-sm font-semibold text-foreground transition-colors hover:border-brand-1"
-                  >
-                    {hero?.secondaryCtaLabel}
-                  </Link>
+                  {hasStoredResume ? (
+                    <a
+                      href={resumeUrl}
+                      className="inline-flex items-center gap-2 rounded-full border border-border px-7 py-3.5 text-sm font-semibold text-foreground transition-colors hover:border-brand-1"
+                    >
+                      {hero?.secondaryCtaLabel}
+                    </a>
+                  ) : (
+                    <Link
+                      href={resumeUrl}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="inline-flex items-center gap-2 rounded-full border border-border px-7 py-3.5 text-sm font-semibold text-foreground transition-colors hover:border-brand-1"
+                    >
+                      {hero?.secondaryCtaLabel}
+                    </Link>
+                  )}
                 </Magnetic>
               ) : null}
             </motion.div>

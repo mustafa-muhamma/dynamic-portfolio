@@ -25,7 +25,6 @@ export type Hero = ApiDoc<{
   primaryCtaLabel?: string;
   primaryCtaUrl?: string;
   secondaryCtaLabel?: string;
-  secondaryCtaUrl?: string;
   image?: string;
   backgroundType?: "color" | "image";
   backgroundColor?: string;
