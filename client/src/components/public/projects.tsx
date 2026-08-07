@@ -11,15 +11,15 @@ import {
   Sparkles
 } from "lucide-react";
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
-import { GradientOrbs, Stagger, StaggerItem } from "@/components/public/motion";
+import { GradientOrbs, Reveal } from "@/components/public/motion";
 import { Section, SectionHeading } from "@/components/public/section";
 import { useProjects } from "@/hooks/use-public";
 import type { Project } from "@/lib/content";
 import { cn } from "@/lib/utils";
 
-const SLIDE_INTERVAL = 4500;
+const SLIDE_INTERVAL = 6000;
 
 function projectHref(project: Project): string {
   const slug = project.slug?.trim();
@@ -67,7 +67,7 @@ function ProjectCover({ project, href }: { project: Project; href: string }) {
     return (
       <Link
         href={href}
-        className="group relative flex aspect-[16/10] items-center justify-center overflow-hidden bg-gradient-brand/10"
+        className="group relative flex aspect-[16/10] items-center justify-center overflow-hidden bg-gradient-brand/10 lg:aspect-auto lg:h-full"
       >
         <div
           aria-hidden="true"
@@ -81,7 +81,7 @@ function ProjectCover({ project, href }: { project: Project; href: string }) {
 
   return (
     <div
-      className="relative aspect-[16/10] overflow-hidden"
+      className="relative aspect-[16/10] overflow-hidden lg:aspect-auto lg:h-full"
       onMouseEnter={() => setPaused(true)}
       onMouseLeave={() => setPaused(false)}
     >
@@ -147,14 +147,132 @@ function ProjectCover({ project, href }: { project: Project; href: string }) {
   );
 }
 
+function ProjectSlide({ item }: { item: Project }) {
+  const href = projectHref(item);
+  const date = formatMonth(item.date);
+
+  return (
+    <article className="grid overflow-hidden rounded-3xl border border-border bg-background/60 backdrop-blur transition-colors hover:border-brand-1 lg:grid-cols-[1.05fr_0.95fr]">
+      <ProjectCover project={item} href={href} />
+
+      <div className="flex flex-col p-7 md:p-10">
+        <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-muted-foreground">
+          {item.role ? (
+            <span className="font-mono text-xs uppercase tracking-[0.2em] text-brand-2">
+              {item.role}
+            </span>
+          ) : null}
+          {date ? (
+            <span className="inline-flex items-center gap-1.5">
+              <Calendar className="size-3.5" />
+              {date}
+            </span>
+          ) : null}
+        </div>
+
+        <Link href={href} className="mt-3 inline-block">
+          <h3 className="font-heading text-2xl font-semibold tracking-tight text-foreground transition-colors group-hover:text-brand-1 md:text-3xl">
+            {item.title}
+          </h3>
+        </Link>
+
+        {item.description ? (
+          <p className="mt-3 text-sm leading-relaxed text-muted-foreground md:text-base">
+            {item.description}
+          </p>
+        ) : null}
+
+        {item.technologies && item.technologies.length > 0 ? (
+          <ul className="mt-5 flex flex-wrap gap-2">
+            {item.technologies.map((tech) => (
+              <li
+                key={tech}
+                className="rounded-full border border-border px-3 py-1 text-xs font-medium text-muted-foreground"
+              >
+                {tech}
+              </li>
+            ))}
+          </ul>
+        ) : null}
+
+        <div className="mt-auto flex flex-wrap items-center gap-3 pt-8">
+          {item.link ? (
+            <a
+              href={item.link}
+              target="_blank"
+              rel="noreferrer"
+              className="btn-gradient inline-flex items-center gap-2 rounded-full px-5 py-2.5 text-sm font-semibold text-white"
+            >
+              View project
+              <ArrowUpRight className="size-4" />
+            </a>
+          ) : null}
+          {item.repo ? (
+            <a
+              href={item.repo}
+              target="_blank"
+              rel="noreferrer"
+              className="inline-flex items-center gap-2 rounded-full border border-border px-5 py-2.5 text-sm font-semibold text-foreground transition-colors hover:border-brand-2 hover:text-brand-2"
+            >
+              <GitFork className="size-4" />
+              Source
+            </a>
+          ) : null}
+          <Link
+            href={href}
+            className="ml-auto text-sm font-semibold text-brand-1 transition-colors hover:text-brand-2"
+          >
+            Case study →
+          </Link>
+        </div>
+      </div>
+    </article>
+  );
+}
+
+const slideVariants = {
+  enter: (direction: number) => ({ opacity: 0, x: direction * 56, scale: 0.985 }),
+  center: { opacity: 1, x: 0, scale: 1 },
+  exit: (direction: number) => ({ opacity: 0, x: direction * -56, scale: 0.985 })
+};
+
 export function Projects() {
   const { data: projects } = useProjects();
 
-  const items = projects
-    ? [...projects]
-        .sort((a, b) => (b.order ?? 0) - (a.order ?? 0))
-        .sort((a, b) => Number(b.featured ?? false) - Number(a.featured ?? false))
-    : [];
+  const items = useMemo(
+    () =>
+      projects
+        ? [...projects]
+            .sort((a, b) => (b.order ?? 0) - (a.order ?? 0))
+            .sort((a, b) => Number(b.featured ?? false) - Number(a.featured ?? false))
+        : [],
+    [projects]
+  );
+
+  const [active, setActive] = useState(0);
+  const [direction, setDirection] = useState(1);
+  const [paused, setPaused] = useState(false);
+  const activeRef = useRef(0);
+  const touchX = useRef<number | null>(null);
+
+  const goTo = useCallback(
+    (index: number) => {
+      const count = items.length;
+      if (count <= 1) return;
+      const next = ((index % count) + count) % count;
+      if (next === activeRef.current) return;
+      setDirection(next > activeRef.current ? 1 : -1);
+      activeRef.current = next;
+      setActive(next);
+    },
+    [items.length]
+  );
+
+  useEffect(() => {
+    if (items.length <= 1 || paused) return;
+    const id = setInterval(() => goTo(activeRef.current + 1), SLIDE_INTERVAL);
+    return () => clearInterval(id);
+  }, [items.length, paused, goTo]);
 
   if (items.length === 0) return null;
 
@@ -169,92 +287,82 @@ export function Projects() {
           description="A selection of things I have designed and built, with the problems they solve."
         />
 
-        <Stagger className="grid gap-6 lg:grid-cols-2">
-          {items.map((item) => {
-            const href = projectHref(item);
-            const date = formatMonth(item.date);
-            return (
-              <StaggerItem
-                key={item.id}
-                className="group overflow-hidden rounded-3xl border border-border bg-background/60 backdrop-blur transition-colors hover:border-brand-1"
+        <Reveal>
+          <div
+            className="relative select-none"
+            onMouseEnter={() => setPaused(true)}
+            onMouseLeave={() => setPaused(false)}
+            onFocusCapture={() => setPaused(true)}
+            onBlurCapture={() => setPaused(false)}
+            onTouchStart={(e) => {
+              touchX.current = e.touches[0].clientX;
+            }}
+            onTouchEnd={(e) => {
+              if (touchX.current == null) return;
+              const dx = e.changedTouches[0].clientX - touchX.current;
+              if (Math.abs(dx) > 48) goTo(activeRef.current + (dx < 0 ? 1 : -1));
+              touchX.current = null;
+            }}
+          >
+            <AnimatePresence initial={false} mode="popLayout" custom={direction}>
+              <motion.div
+                key={items[active].id}
+                custom={direction}
+                variants={slideVariants}
+                initial="enter"
+                animate="center"
+                exit="exit"
+                transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
               >
-                <ProjectCover project={item} href={href} />
+                <ProjectSlide item={items[active]} />
+              </motion.div>
+            </AnimatePresence>
+          </div>
+        </Reveal>
 
-                <div className="p-6 md:p-7">
-                  <Link href={href} className="inline-block">
-                    <h3 className="font-heading text-xl font-semibold tracking-tight text-foreground transition-colors group-hover:text-brand-1">
-                      {item.title}
-                    </h3>
-                  </Link>
+        {items.length > 1 ? (
+          <Reveal delay={0.1} className="mt-10 flex items-center justify-between gap-6">
+            <div className="flex items-center gap-3">
+              <button
+                type="button"
+                aria-label="Previous project"
+                onClick={() => goTo(activeRef.current - 1)}
+                className="flex size-11 items-center justify-center rounded-full border border-border text-muted-foreground transition-colors hover:border-brand-2 hover:text-brand-2"
+              >
+                <ChevronLeft className="size-5" />
+              </button>
+              <span className="hidden font-mono text-xs text-muted-foreground sm:block">
+                {String(active + 1).padStart(2, "0")} / {String(items.length).padStart(2, "0")}
+              </span>
+            </div>
 
-                  <div className="mt-1.5 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-muted-foreground">
-                    {item.role ? (
-                      <span className="font-mono text-xs uppercase tracking-[0.2em] text-brand-2">
-                        {item.role}
-                      </span>
-                    ) : null}
-                    {date ? (
-                      <span className="inline-flex items-center gap-1.5">
-                        <Calendar className="size-3.5" />
-                        {date}
-                      </span>
-                    ) : null}
-                  </div>
+            <div className="flex items-center gap-2.5">
+              {items.map((item, index) => (
+                <button
+                  key={item.id}
+                  type="button"
+                  aria-label={`Go to project ${index + 1}`}
+                  onClick={() => goTo(index)}
+                  className={cn(
+                    "size-2 rounded-full transition-all",
+                    index === active
+                      ? "w-7 bg-brand-2"
+                      : "bg-muted-foreground/30 hover:bg-muted-foreground/60"
+                  )}
+                />
+              ))}
+            </div>
 
-                  {item.description ? (
-                    <p className="mt-3 line-clamp-2 text-sm leading-relaxed text-muted-foreground">
-                      {item.description}
-                    </p>
-                  ) : null}
-
-                  {item.technologies && item.technologies.length > 0 ? (
-                    <ul className="mt-5 flex flex-wrap gap-2">
-                      {item.technologies.map((tech) => (
-                        <li
-                          key={tech}
-                          className="rounded-full border border-border px-3 py-1 text-xs font-medium text-muted-foreground"
-                        >
-                          {tech}
-                        </li>
-                      ))}
-                    </ul>
-                  ) : null}
-
-                  <div className="mt-6 flex flex-wrap items-center gap-3">
-                    {item.link ? (
-                      <a
-                        href={item.link}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="btn-gradient inline-flex items-center gap-2 rounded-full px-5 py-2.5 text-sm font-semibold text-white"
-                      >
-                        View project
-                        <ArrowUpRight className="size-4" />
-                      </a>
-                    ) : null}
-                    {item.repo ? (
-                      <a
-                        href={item.repo}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="inline-flex items-center gap-2 rounded-full border border-border px-5 py-2.5 text-sm font-semibold text-foreground transition-colors hover:border-brand-2 hover:text-brand-2"
-                      >
-                        <GitFork className="size-4" />
-                        Source
-                      </a>
-                    ) : null}
-                    <Link
-                      href={href}
-                      className="ml-auto text-sm font-semibold text-brand-1 transition-colors hover:text-brand-2"
-                    >
-                      Case study →
-                    </Link>
-                  </div>
-                </div>
-              </StaggerItem>
-            );
-          })}
-        </Stagger>
+            <button
+              type="button"
+              aria-label="Next project"
+              onClick={() => goTo(activeRef.current + 1)}
+              className="flex size-11 items-center justify-center rounded-full border border-border text-muted-foreground transition-colors hover:border-brand-2 hover:text-brand-2"
+            >
+              <ChevronRight className="size-5" />
+            </button>
+          </Reveal>
+        ) : null}
       </div>
     </Section>
   );
