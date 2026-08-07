@@ -87,11 +87,17 @@ export function Nav() {
         className="absolute inset-x-0 top-0 h-0.5 origin-left bg-gradient-brand"
       />
       <nav className="mx-auto flex h-16 w-full max-w-6xl items-center justify-between gap-4 px-6 md:px-8">
-        <Link href="#top" className="group flex items-center gap-2" onClick={() => setOpen(false)}>
-          <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-brand text-sm font-bold text-white">
+        <Link
+          href="#top"
+          className="group flex min-w-0 max-w-[14rem] items-center gap-2"
+          onClick={() => setOpen(false)}
+        >
+          <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-gradient-brand text-sm font-bold text-white">
             {(brand || "P").slice(0, 1).toUpperCase()}
           </span>
-          <span className="font-heading text-sm font-semibold tracking-tight">{brand}</span>
+          <span className="truncate font-heading text-sm font-semibold tracking-tight">
+            {brand}
+          </span>
         </Link>
 
         <div className="hidden items-center gap-1 md:flex">

@@ -74,12 +74,14 @@ export function Contact() {
                     {item.href ? (
                       <a
                         href={item.href}
-                        className="block truncate text-sm font-semibold text-foreground transition-colors hover:text-brand-2"
+                        className="block break-all text-sm font-semibold text-foreground transition-colors hover:text-brand-2"
                       >
                         {item.value}
                       </a>
                     ) : (
-                      <p className="truncate text-sm font-semibold text-foreground">{item.value}</p>
+                      <p className="break-all text-sm font-semibold text-foreground">
+                        {item.value}
+                      </p>
                     )}
                   </div>
                 </StaggerItem>

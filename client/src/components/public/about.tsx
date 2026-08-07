@@ -144,7 +144,7 @@ export function About() {
             ) : null}
 
             {facts.length > 0 ? (
-              <Stagger className="mt-8 grid grid-cols-2 gap-4">
+              <Stagger className="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-2">
                 {facts.map((fact) => (
                   <StaggerItem
                     key={fact.label}

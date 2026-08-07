@@ -113,7 +113,7 @@ export function Hero() {
             </motion.div>
           ) : null}
 
-          <h1 className="font-heading text-balance text-5xl font-bold leading-[1.05] tracking-tight md:text-6xl lg:text-7xl">
+          <h1 className="font-heading text-balance text-4xl font-bold leading-[1.05] tracking-tight sm:text-5xl md:text-6xl lg:text-7xl [overflow-wrap:anywhere]">
             {words.map((word, i) => (
               <Fragment key={`${word}-${i}`}>
                 <span className="inline-block overflow-hidden pb-1 align-top">
@@ -193,7 +193,7 @@ export function Hero() {
               initial={{ opacity: 0, y: 16 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.7, delay: 0.7, ease: EASE }}
-              className="mt-12 grid w-full max-w-md grid-cols-4 gap-x-4 gap-y-6 border-t border-border pt-8"
+              className="mt-12 grid w-full max-w-md grid-cols-2 gap-x-4 gap-y-6 border-t border-border pt-8 sm:grid-cols-4"
             >
               {stats.map((stat) => (
                 <div key={stat.label} className="flex flex-col gap-1.5">
