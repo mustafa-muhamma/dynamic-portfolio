@@ -10,7 +10,6 @@ import { PricingModel } from "../models/pricing.model.js";
 import { ProcessModel } from "../models/process.model.js";
 import { ProfileModel } from "../models/profile.model.js";
 import { ProjectModel } from "../models/project.model.js";
-import { ResumeModel } from "../models/resume.model.js";
 import { ServiceModel } from "../models/service.model.js";
 import { SiteSettingsModel } from "../models/siteSettings.model.js";
 import { SkillModel } from "../models/skill.model.js";
@@ -41,15 +40,6 @@ async function seedContent(): Promise<void> {
     }
   ]);
 
-  await seedCollection("resume", ResumeModel, [
-    {
-      fileName: "Mustafa-Muhammad-CV.pdf",
-      fileUrl: "https://example.com/mustafa-muhammad-cv.pdf",
-      mimeType: "application/pdf",
-      size: 0
-    }
-  ]);
-
   await seedCollection("hero", HeroModel, [
     {
       eyebrow: "Hi, I'm",
@@ -59,7 +49,6 @@ async function seedContent(): Promise<void> {
       primaryCtaLabel: "View my work",
       primaryCtaUrl: "#work",
       secondaryCtaLabel: "Download resume",
-      secondaryCtaUrl: "#resume",
       image: "",
       backgroundType: "color",
       backgroundColor: "#0a0a0a",
