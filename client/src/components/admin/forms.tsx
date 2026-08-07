@@ -1098,6 +1098,7 @@ export function TestimonialForm({
     handleSubmit,
     setValue,
     control,
+    clearErrors,
     formState: { errors }
   } = useForm({
     resolver: zodResolver(testimonialSchema),
@@ -1112,6 +1113,13 @@ export function TestimonialForm({
     (a, b) => (b.order ?? 0) - (a.order ?? 0)
   );
 
+  function handleImagesChange(next: string[]) {
+    setValue("images", next, { shouldDirty: true });
+    if (next.length > 0) {
+      clearErrors(["author", "quote"]);
+    }
+  }
+
   return (
     <FormShell
       onSubmit={handleSubmit((v) => onSubmit(v))}
@@ -1122,7 +1130,7 @@ export function TestimonialForm({
         label="Author"
         id="author"
         error={errors.author?.message}
-        hint="Required unless proof screenshots are uploaded."
+        hint="Only required when no proof screenshots are uploaded."
         {...register("author")}
       />
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
@@ -1139,7 +1147,7 @@ export function TestimonialForm({
         id="quote"
         error={errors.quote?.message}
         rows={3}
-        hint="Required unless proof screenshots are uploaded."
+        hint="Only required when no proof screenshots are uploaded."
         {...register("quote")}
       />
       <FilePicker
@@ -1177,7 +1185,7 @@ export function TestimonialForm({
       <ImageListPicker
         label="Proof screenshots"
         value={images}
-        onChange={(v) => setValue("images", v, { shouldDirty: true })}
+        onChange={handleImagesChange}
         hint="Upload screenshots to make Author, Role, Company, Quote, and Avatar optional. PNG, JPG, WebP, GIF, or SVG. Max 5MB each."
       />
       <NumberField label="Order" id="order" error={errors.order?.message} {...register("order")} />
