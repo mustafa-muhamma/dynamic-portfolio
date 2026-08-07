@@ -44,7 +44,11 @@ export function Footer() {
                   aria-label={social.platform}
                   className="flex h-9 w-9 items-center justify-center rounded-full border border-border text-muted-foreground transition-all hover:border-brand-1 hover:text-foreground"
                 >
-                  <SocialIcon platform={social.platform} />
+                  <SocialIcon
+                    platform={social.platform}
+                    icon={social.icon}
+                    iconUrl={social.iconUrl}
+                  />
                 </a>
               ))}
             </div>

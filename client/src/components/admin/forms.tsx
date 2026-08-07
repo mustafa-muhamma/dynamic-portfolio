@@ -19,6 +19,7 @@ import {
   TextField
 } from "@/components/admin/fields";
 import { FilePicker, ImageListPicker } from "@/components/admin/file-picker";
+import { SocialIconPicker } from "@/components/admin/social-icon-picker";
 import type { ResourceFormProps } from "@/components/admin/collection-manager";
 import { useCollectionList } from "@/hooks/use-content";
 import { Button } from "@/components/ui/button";
@@ -797,6 +798,8 @@ export function ProjectForm({
 const socialLinkSchema = z.object({
   platform: requiredString,
   url: z.string().trim().url("Enter a valid URL"),
+  icon: optionalString,
+  iconUrl: optionalString,
   order: optionalNumber,
   published: optionalBool
 });
@@ -818,6 +821,8 @@ export function SocialLinkForm({
     defaultValues: { published: false, ...defaultValues }
   });
   const published = useWatch({ control, name: "published" });
+  const icon = useWatch({ control, name: "icon" });
+  const iconUrl = useWatch({ control, name: "iconUrl" });
 
   return (
     <FormShell
@@ -840,6 +845,16 @@ export function SocialLinkForm({
         />
       </div>
       <TextField label="URL" id="url" error={errors.url?.message} {...register("url")} />
+      <div>
+        <span className="mb-1.5 block text-sm font-medium">Icon</span>
+        <SocialIconPicker
+          value={{ icon, iconUrl }}
+          onChange={(next) => {
+            setValue("icon", next.icon ?? "", { shouldDirty: true });
+            setValue("iconUrl", next.iconUrl ?? "", { shouldDirty: true });
+          }}
+        />
+      </div>
       <SwitchField
         label="Published"
         description="Visible on the public site"

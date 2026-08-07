@@ -82,6 +82,8 @@ export type Project = ApiDoc<{
 export type SocialLink = ApiDoc<{
   platform: string;
   url: string;
+  icon?: string;
+  iconUrl?: string;
   order?: number;
   published?: boolean;
 }>;

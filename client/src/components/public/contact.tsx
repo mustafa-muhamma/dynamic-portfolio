@@ -97,7 +97,12 @@ export function Contact() {
                     aria-label={social.platform}
                     className="flex size-11 items-center justify-center rounded-xl border border-border text-muted-foreground transition-colors hover:border-brand-2 hover:text-brand-2"
                   >
-                    <SocialIcon platform={social.platform} className="size-5" />
+                    <SocialIcon
+                      platform={social.platform}
+                      icon={social.icon}
+                      iconUrl={social.iconUrl}
+                      className="size-5"
+                    />
                   </a>
                 ))}
               </Reveal>
