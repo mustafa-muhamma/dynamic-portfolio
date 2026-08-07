@@ -82,6 +82,8 @@ export const projectUpdateSchema = projectWriteSchema.partial();
 export const socialLinkWriteSchema = z.object({
   platform: z.string().trim().min(1),
   url: z.string().trim().url(),
+  icon: optionalString,
+  iconUrl: optionalString,
   order: optionalNumber,
   published: optionalBoolean
 });

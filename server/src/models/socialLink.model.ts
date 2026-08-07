@@ -7,6 +7,8 @@ const socialLinkSchema = new Schema(
   {
     platform: { type: String, required: true, trim: true },
     url: { type: String, required: true, trim: true },
+    icon: { type: String, default: "" },
+    iconUrl: { type: String, default: "" },
     order: { type: Number, default: 0 },
     published: { type: Boolean, default: false }
   },

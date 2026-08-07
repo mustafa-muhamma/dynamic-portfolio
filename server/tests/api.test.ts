@@ -354,6 +354,28 @@ describe("media upload", () => {
   });
 });
 
+describe("social link icons", () => {
+  it("stores and exposes icon and iconUrl", async () => {
+    const created = await request(app)
+      .post("/api/v1/admin/social-links")
+      .set(authed())
+      .send({
+        platform: "Upwork",
+        url: "https://upwork.com/u/mustafa",
+        icon: "upwork",
+        published: true
+      })
+      .expect(201);
+    expect(created.body.icon).toBe("upwork");
+    expect(created.body.iconUrl).toBe("");
+
+    const pub = await request(app).get("/api/v1/social-links").expect(200);
+    const link = pub.body.find((l: { platform: string }) => l.platform === "Upwork");
+    expect(link).toBeDefined();
+    expect(link.icon).toBe("upwork");
+  });
+});
+
 describe("resume upload and download", () => {
   beforeAll(async () => {
     await ResumeModel.deleteMany({});
