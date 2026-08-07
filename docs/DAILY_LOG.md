@@ -754,3 +754,63 @@
 - Continue M4: populate every entity with real content via the dashboard and run the polish pass.
 
 ---
+
+## Session 13 — 2026-08-08
+
+- **Session Duration:** Review fixes — testimonials validation, projects carousel, responsive polish, process order.
+- **Session Number:** 13
+- **Phase:** 1 — Foundations (M3 — Public Portfolio MVP / review fixes)
+
+### Completed Work
+
+- Testimonials conditional validation (issue 6): `author` and `quote` are now only required when no proof screenshots are uploaded.
+  - Server: `server/src/models/testimonial.model.ts` relaxed `author`/`quote` from `required: true` to `default: ""`; `server/src/validation/client.ts` restructured into `testimonialBaseSchema` (all-optional, no refinement) + `testimonialWriteSchema = base.superRefine(...)` — `images` present ⇒ author/quote optional, no images ⇒ author+quote required; `testimonialUpdateSchema = base.partial()`.
+  - Client: `client/src/components/admin/forms.tsx` mirrors the base + `superRefine` pattern; `handleImagesChange` clears the `author`/`quote` errors when screenshots are uploaded; Author/Quote hints reworded to "Only required when no proof screenshots are uploaded."
+  - Client rendering: `TestimonialCard` hides the quote when empty and the identity footer when author/avatar/role/company are all empty, with a "Client" fallback avatar letter (`client/src/components/public/testimonials.tsx`); `Testimonial` type made `author?`/`quote?` optional (`client/src/lib/content.ts`); admin list label falls back to "Client" (`client/src/app/(admin)/admin/testimonials/page.tsx`); project detail reviews render safely (`client/src/app/(public)/projects/[slug]/page.tsx`).
+  - Verified with the real `zodResolver` (@hookform/resolvers 5.7.1 + zod 4.4.3): with screenshots → no errors; without → author/quote custom errors. Server path verified via `safeParse` in the crud controller; `CollectionManager.handleSubmit` passes values through unchanged. Server `dist` rebuilt so `npm start` serves the current validation.
+- Projects carousel (issue 7): rewrote `client/src/components/public/projects.tsx` as a single-feature auto-playing carousel — `ProjectCover` image slideshow left + content (title/role/date/description/tech/links/Case study) right on `lg` (stacked on mobile), `AnimatePresence mode="popLayout"` with directional `slideVariants`, 6s auto-advance pausing on hover/focus, prev/next arrows + dots + slide counter, and touch-swipe navigation (>48px delta).
+- Responsive polish (issue 8): hero heading `text-4xl sm:text-5xl md:text-6xl lg:text-7xl` with `[overflow-wrap:anywhere]` and stats `grid-cols-2 sm:grid-cols-4` (`hero.tsx`); nav brand truncates with a shrink-0 logo (`nav.tsx`); About facts `grid-cols-1 sm:grid-cols-2` (`about.tsx`); contact values `break-all` instead of `truncate` (`contact.tsx`).
+- Process order fix: `process.tsx` sorts steps ascending `(a.order ?? 0) - (b.order ?? 0)` so the Process section renders 1 → N instead of N → 1 (seed uses `step: 1..5`, `order: 0..4`).
+- Verified: server typecheck/lint + 43 tests pass; client tsc, ESLint, and `next build` pass clean (remaining lint warnings are the pre-existing `<img>` `@next/next/no-img-element` notices).
+
+### Problems Found
+
+- Zod v4 throws `".partial() cannot be used on object schemas containing refinements"` — `testimonialUpdateSchema` had to derive from the refinement-free `testimonialBaseSchema.partial()` instead of the `superRefine` write schema.
+- The user still saw the old "author/quote required" validation on a deployed instance even though the schema accepted screenshots-only submissions. Root cause: a stale running server and/or stale form errors already displayed; fixed by clearing the `author`/`quote` errors on screenshot upload, rewording the hints, and advising a dev-server restart + hard refresh (an empty `images` array legitimately keeps author/quote required).
+- Process steps rendered in descending order (N → 1) because the client sorted with `(b.order ?? 0) - (a.order ?? 0)`; reversed to ascending.
+
+### Architecture Decisions
+
+- (none new)
+
+### Commits Created
+
+- `feat(testimonials): make author and quote optional when proof screenshots are attached`
+- `feat(projects): replace grid with auto-playing carousel and smooth transitions`
+- `fix(public): responsive polish across hero, nav, about, and contact`
+- `fix(process): order steps from 1 to N instead of N to 1`
+- `feat(testimonials): enhance image handling and update hints for author and quote fields`
+- Pending: `docs(log): record session 13 - review fixes`
+
+### Files Added
+
+- (none)
+
+### Files Modified
+
+- `server/src/models/testimonial.model.ts`, `server/src/validation/client.ts`
+- `client/src/components/admin/forms.tsx`, `client/src/components/public/{testimonials,projects,process,hero,nav,about,contact}.tsx`, `client/src/lib/content.ts`, `client/src/app/(admin)/admin/testimonials/page.tsx`, `client/src/app/(public)/projects/[slug]/page.tsx`
+- `docs/MASTER_PLAN.md` (M4 polish progress, next session plan), `docs/DAILY_LOG.md` (this entry)
+
+### Remaining Tasks
+
+- Continue the review points with the owner.
+- Fill real content via the dashboard (M4).
+- Responsive/accessibility/perf polish pass (M4) — responsive fixes partially done.
+- Test, harden, and deploy (M5).
+
+### Tomorrow's Goal
+
+- Continue M4: remaining review points, populate real content via the dashboard, and finish the polish pass.
+
+---

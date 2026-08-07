@@ -98,6 +98,12 @@
 - Responsive, accessible, performant design.
   **Exit criteria:** Both personas can complete their full journey.
 
+**In progress (2026-08-08):**
+
+- [x] Review fixes: testimonials conditional validation, projects auto-playing carousel, responsive polish (hero/nav/about/contact), process order 1→N.
+- [ ] Remaining responsive/accessibility/perf pass.
+- [ ] Populate every entity with real content via the dashboard.
+
 ### M5 — Hardening & Launch
 
 **Goal:** Production-ready.
@@ -200,9 +206,9 @@ Convention: small, focused commits, one logical task each. Suggested message for
 ## Next Session Plan
 
 1. Run the session workflow (read the four docs).
-2. Review the full session step list with the owner (the remaining points after the social-links icons feature).
-3. Continue M4: populate every entity with real content via the dashboard (the M3 build, resume download, and social-links icons are complete).
-4. Responsive, accessible, performant polish pass on the public site.
+2. Review the full session step list with the owner (the remaining points after the review-fixes session).
+3. Continue M4: populate every entity with real content via the dashboard (the M3 build, resume download, social-links icons, testimonials validation, projects carousel, and responsive polish are complete).
+4. Finish the responsive/accessibility/perf polish pass on the public site.
 5. Verify both personas (recruiter + client) can complete their full journey.
 6. Commit and close with documentation updates.
 
