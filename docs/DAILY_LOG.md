@@ -498,3 +498,139 @@
 - Begin M3: scaffold the `(public)` route group and build the Home/hero section from the new Hero singleton (data-driven, animations via CSS + IntersectionObserver, mobile-first).
 
 ---
+
+## Session 9 — 2026-08-06
+
+- **Session Duration:** M3 implementation — public portfolio foundation + recruiter path (multiple sub-sessions).
+- **Session Number:** 9
+- **Phase:** 1 — Foundations (M3 — Public Portfolio MVP)
+
+### Completed Work
+
+- Added the immersive design system and theme provider: indigo/green rebrand with dark-mode CTA, `motion` dependency (AD-15), animation primitives (`GradientOrbs`, `Reveal`), and the public shell.
+- Added the public data layer and section config (`content.ts`, `sections.ts`, `use-public.ts`) and proxied the public API through Next (`/api/public/[...path]`) to bypass CORS.
+- Built the hero section at `/` from the Hero singleton (animated gradient heading, split layout when an image is set).
+- Added `yearsOfExperience` to the profile model so the About section shows it without fabricated literals.
+- Media/cropping work: `react-easy-crop` dependency for avatar cropping, and a fix so the crop preview shows the exact cropped output with normalized EXIF.
+- About section wired into the home page (bio, facts, email mailto + copy button, unclamped fact values, resume download from profile/resume document).
+- Added scroll reveals and a reading progress bar.
+- Experience timeline with LinkedIn-style durations (`3y 5mo`, current-role computation).
+- Projects section with featured cards, then upgraded to premium auto-playing slideshow cards with detail links.
+- Skills section with a marquee and compact, category-grouped chips (removed progress-bar styling per feedback).
+- Added the mandatory session workflow to the root `AGENTS.md`.
+
+### Problems Found
+
+- Public API calls hit CORS from the browser; fixed by proxying through a Next route handler.
+- Earlier About facts were clamped by overflow; unclamped the fact values so full numbers show.
+- Hero content collapsed when no hero image was set; made the hero full-width in that case.
+
+### Architecture Decisions
+
+- AD-15: Public animations use `motion` (Framer Motion), approved over hand-rolled CSS + IntersectionObserver and the Web Animations API.
+
+### Commits Created
+
+- `feat(client): add immersive design system and theme provider`
+- `chore(client): add motion dependency for public animations`
+- `feat(client): add public data layer and section config`
+- `feat(client): add animation primitives and public shell`
+- `fix(client): proxy public API through Next to bypass CORS`
+- `feat(client): build immersive premium hero section at /`
+- `feat(profile): add explicit years of experience field`
+- `fix(media): preview shows the exact cropped output, normalize EXIF`
+- `feat(design): rebrand palette to indigo-green with dark-mode CTA`
+- `build(client): add react-easy-crop dependency`
+- `feat(public): email mailto + copy button, unclamp fact values`
+- `feat(public): wire About section into home page`
+- `feat(public): add scroll reveals and progress bar`
+- `fix(public): full-width hero content when no image`
+- `feat(public): add Experience timeline section with linkedIn duration style`
+- `feat(public): add Projects section with featured cards`
+- `feat(public): add Skills section with marquee and compact skill chips`
+- `docs(workflow): add mandatory session workflow to root AGENTS.md`
+
+### Files Added
+
+- `client/src/components/public/*` (motion, section, hero, about, experience, skills, projects, nav, footer, header, etc.), `client/src/lib/{sections.ts,theme.ts}`, `client/src/hooks/use-public.ts`, `client/src/providers/*`, `client/src/app/api/public/[...path]/route.ts`
+- `server/src/models/profile.model.ts` (`yearsOfExperience`), `server/src/validation/recruiter.ts` (field added)
+
+### Files Modified
+
+- `client/src/app/(public)/page.tsx` (all sections wired), `client/src/lib/content.ts`, `client/src/styles/*`, `client/package.json` (motion, react-easy-crop)
+- `docs/MASTER_PLAN.md` (AD-15, M3 progress), `docs/DAILY_LOG.md` (this entry), root `AGENTS.md` (session workflow)
+
+### Remaining Tasks
+
+- Project detail pages + dashboard fields for projects (slug, in-progress, date picker).
+- Client-path sections (Services, Pricing, Process, Testimonials, Contact) and contact form.
+- Testimonials linked to projects with proof screenshots.
+
+### Tomorrow's Goal
+
+- Finish M3: client-path sections, project detail pages, and the testimonial→project linking feature.
+
+---
+
+## Session 10 — 2026-08-07
+
+- **Session Duration:** M3 completion — project detail pages, client-path sections, testimonial linking, and layout polish.
+- **Session Number:** 10
+- **Phase:** 1 — Foundations (M3 — Public Portfolio MVP)
+
+### Completed Work
+
+- Client-path sections built and wired: Services, Pricing, Process, and Contact form, completing the public page (recruiter + client audiences on one route, per `sections.ts`).
+- Project detail data layer (`getResource` + `useProjectBySlug`) and dashboard project fields: optional `slug` (auto-suggested from title, empty allowed), `inProgress` toggle, and a month picker for `date`.
+- Project detail page at `/projects/[slug]`: premium gallery (cross-fade main image, arrows, dots, counter, responsive thumbnail strip), sticky stack card, CTAs, and a 404 state.
+- Project cards on the home page upgraded to premium slideshows (auto-play, arrows, dots) linking into detail pages; detail routes resolve by `slug` or raw id when `slug` is missing.
+- Server: testimonial model + validation extended with optional `projectId` and proof `images`; seed links one review to the flagship project.
+- Dashboard: `TestimonialForm` gained a related-project select and a screenshots uploader (`ImageListPicker`).
+- Home Testimonials rebuilt as a snap carousel (autoplay, arrows, dots, hover-pause) with per-card project badges and proof screenshots; project detail pages show their linked client reviews.
+- Layout polish on the project page per feedback: wider stack card, roomier desktop CTAs, responsive gallery thumbnails.
+
+### Problems Found
+
+- Editing the grid ratio in source did not visibly change the deployed page — the page being inspected was the live build, not local output; verified the local production build generates the exact `grid-cols-[1.1fr_1fr]` rule.
+- Explored a brand-icon tile grid (`react-icons`) for the stack card and a wider home-card layout; both were reverted on request in favor of the pill-style stack card and the existing home layout.
+- Project detail 404 when a project had no slug; fixed server-side by matching on id or slug (`mongoose.isValidObjectId` guard).
+
+### Architecture Decisions
+
+- AD-16: Testimonials link to projects via optional `projectId` and may carry proof screenshots (`images`); unlinked reviews still render on the home carousel.
+
+### Commits Created
+
+- `feat(client): add project detail data layer`
+- `feat(admin): project slug, in-progress status, and month picker fields`
+- `feat(public): project cards as premium slideshows with detail links`
+- `feat(public): add client-path sections and contact form`
+- `feat(public): project detail page with premium gallery and server endpoint`
+- `fix(public): resolve project detail by id when slug is missing`
+- `feat(server): relate testimonials to projects with proof screenshots`
+- `feat(admin): link testimonials to projects and attach screenshots`
+- `feat(public): carousel testimonials with project badges and client reviews on projects`
+- `fix(public): adjust grid layout for project page`
+
+### Files Added
+
+- `client/src/app/(public)/projects/[slug]/page.tsx`, `client/src/components/public/{services,pricing,process,testimonials,contact}.tsx`
+- `server/src/models/testimonial.model.ts` (projectId + images fields added to existing model)
+
+### Files Modified
+
+- `server/src/controllers/public.controller.ts` (get project by slug/id), `server/src/routes/public.ts`, `server/src/validation/client.ts`, `server/src/scripts/seed-content.ts`
+- `client/src/lib/content.ts` (Testimonial type), `client/src/components/admin/forms.tsx` (ProjectForm + TestimonialForm), `client/src/components/admin/fields.tsx` (MonthField), `client/src/components/admin/collection-manager.tsx`, `client/src/components/public/projects.tsx`
+- `docs/MASTER_PLAN.md` (M3 complete, progress ~75%, AD-16, Day 6), `docs/DAILY_LOG.md` (this entry)
+
+### Remaining Tasks
+
+- Fill real content via the dashboard (M4) — the M3 build is complete.
+- Responsive/accessibility/perf polish pass (M4).
+- Test, harden, and deploy (M5).
+
+### Tomorrow's Goal
+
+- Begin M4: populate every entity with real content via the dashboard and run the polish pass.
+
+---

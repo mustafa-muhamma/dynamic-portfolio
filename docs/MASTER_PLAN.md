@@ -1,7 +1,7 @@
 # MASTER PLAN
 
 > **Status:** Active
-> **Last Updated:** 2026-08-05
+> **Last Updated:** 2026-08-07
 >
 > This document defines **HOW** we build the product. It is the project's **source of truth** and is updated continuously.
 >
@@ -11,11 +11,11 @@
 
 ## Current Phase
 
-**Phase 1 — Foundations** (M0–M2 complete; dashboard delivered)
+**Phase 1 — Foundations** (M0–M3 complete; dashboard + public portfolio delivered)
 
 ## Current Day
 
-- **Day 4** of the project (2026-08-05).
+- **Day 6** of the project (2026-08-07).
 
 ## Overall Progress
 
@@ -24,15 +24,14 @@
 - [x] Repository scaffolding
 - [x] Server (headless API)
 - [x] Dashboard (admin routes in `client/`)
-- [ ] Public portfolio
+- [x] Public portfolio
 - [ ] Content completeness
 - [ ] Hardening & launch
 
-**Progress: ~55%**
+**Progress: ~75%**
 
 ## Remaining Work
 
-- Build public portfolio modules (M3).
 - Fill real content via the dashboard (M4).
 - Test, harden, and deploy (M5).
 
@@ -77,14 +76,18 @@
 - [x] Long-lived sessions (1-year JWT + cookie) with automatic logout on expiry.
       **Exit criteria met:** AC-01 satisfied — content changes update the API without code edits.
 
-### M3 — Public Portfolio MVP
+### M3 — Public Portfolio MVP (Complete)
 
 **Goal:** A public portfolio consuming the API, serving both audiences.
 **Deliverables:**
 
-- Recruiter path (Home, About, Experience, Skills, Projects, Resume, Contact).
-- Client path (Home, Services, Pricing, Process, Testimonials, Contact).
-  **Exit criteria:** AC-02 satisfied — zero hardcoded content in the frontend.
+- [x] Immersive design system + theme provider (indigo/green brand, dark mode, `motion` animations, scroll reveals + progress bar).
+- [x] Public data layer + section config (`client/src/lib/content.ts`, `client/src/lib/sections.ts`, `client/src/hooks/use-public.ts`), with the public API proxied through Next to bypass CORS.
+- [x] Recruiter path: hero (data-driven singleton), About (with resume download), Experience (LinkedIn-style durations), Skills (marquee + compact chips), Projects (slideshow cards + detail pages), Contact.
+- [x] Client path: Services, Pricing, Process, Testimonials (carousel with project badges + proof screenshots), Contact form.
+- [x] Project detail pages (`/projects/[slug]`) with premium gallery, stack card, and linked client reviews.
+- [x] Testimonials link to projects (`projectId`) and carry optional proof screenshots, editable from the dashboard.
+      **Exit criteria met:** AC-02 satisfied — zero hardcoded content in the frontend (all content comes from the API).
 
 ### M4 — Content & Polish
 
@@ -116,6 +119,7 @@
 | AD-06 | Deployment: frontend → Vercel; backend → Railway/Render (final TBD); DB → MongoDB Atlas; media → Cloudinary.                                                                                                                                                                                                                                                                                              | **Decided** (backend provider TBD) | 2026-08-03 |
 | AD-11 | Dashboard sessions are long-lived (1-year JWT + cookie); an expired/invalid token triggers automatic logout. No refresh-token flow.                                                                                                                                                                                                                                                                       | **Decided**                        | 2026-08-05 |
 | AD-15 | Public animations use `motion` (Framer Motion). Why: mission-critical for the immersive scroll UX (scroll reveals, springs, layout transitions, stagger). Alternatives: hand-rolled CSS + IntersectionObserver (more code, less buttery) and Web Animations API (lower-level). Trade-offs: ~+50 kB client dependency; mature, actively maintained. Long-term: stable `motion/react` API, well-documented. | **Decided** (user-approved)        | 2026-08-06 |
+| AD-16 | Testimonials are linked to projects via an optional `projectId` field so a review can surface on the matching project detail page; reviews may also carry proof screenshots (`images`) for trust. Kept optional so unlinked reviews still render on the home carousel.                                                                                                                                    | **Decided**                        | 2026-08-07 |
 
 ## Dependency Approval Process
 
@@ -194,9 +198,9 @@ Convention: small, focused commits, one logical task each. Suggested message for
 ## Next Session Plan
 
 1. Run the session workflow (read the four docs).
-2. Begin M3: scaffold the `(public)` route group with an API-driven home page.
-3. Build the recruiter path (Home, About, Experience, Skills, Projects, Resume, Contact).
-4. Build the client path (Home, Services, Pricing, Process, Testimonials, Contact).
+2. Begin M4: populate every entity with real content via the dashboard.
+3. Responsive, accessible, performant polish pass on the public site.
+4. Verify both personas (recruiter + client) can complete their full journey.
 5. Commit and close with documentation updates.
 
 ---
