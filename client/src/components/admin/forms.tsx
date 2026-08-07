@@ -1056,16 +1056,35 @@ export function ProcessForm({
   );
 }
 
-const testimonialSchema = z.object({
-  author: requiredString,
+const testimonialBaseSchema = z.object({
+  author: optionalString,
   role: optionalString,
   company: optionalString,
-  quote: requiredString,
+  quote: optionalString,
   avatar: optionalString,
   projectId: optionalString,
   images: optionalArray,
   order: optionalNumber,
   published: optionalBool
+});
+
+const testimonialSchema = testimonialBaseSchema.superRefine((value, ctx) => {
+  const hasProofScreenshots = (value.images?.length ?? 0) > 0;
+  if (hasProofScreenshots) return;
+  if (!value.author?.trim()) {
+    ctx.addIssue({
+      code: "custom",
+      path: ["author"],
+      message: "Author is required when there are no proof screenshots"
+    });
+  }
+  if (!value.quote?.trim()) {
+    ctx.addIssue({
+      code: "custom",
+      path: ["quote"],
+      message: "Quote is required when there are no proof screenshots"
+    });
+  }
 });
 
 export function TestimonialForm({
@@ -1103,6 +1122,7 @@ export function TestimonialForm({
         label="Author"
         id="author"
         error={errors.author?.message}
+        hint="Required unless proof screenshots are uploaded."
         {...register("author")}
       />
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
@@ -1119,6 +1139,7 @@ export function TestimonialForm({
         id="quote"
         error={errors.quote?.message}
         rows={3}
+        hint="Required unless proof screenshots are uploaded."
         {...register("quote")}
       />
       <FilePicker
@@ -1157,7 +1178,7 @@ export function TestimonialForm({
         label="Proof screenshots"
         value={images}
         onChange={(v) => setValue("images", v, { shouldDirty: true })}
-        hint="Optional screenshots for extra trust. PNG, JPG, WebP, GIF, or SVG. Max 5MB each."
+        hint="Upload screenshots to make Author, Role, Company, Quote, and Avatar optional. PNG, JPG, WebP, GIF, or SVG. Max 5MB each."
       />
       <NumberField label="Order" id="order" error={errors.order?.message} {...register("order")} />
       <SwitchField

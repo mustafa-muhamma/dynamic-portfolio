@@ -10,9 +10,9 @@ export default function TestimonialsPage() {
       title="Testimonials"
       description="Client proof and quotes"
       Form={TestimonialForm}
-      getLabel={(row) => row.author}
+      getLabel={(row) => row.author?.trim() || "Client"}
       getSubtitle={(row) => [row.role, row.company].filter(Boolean).join(", ")}
-      searchText={(row) => `${row.author} ${row.role ?? ""} ${row.company ?? ""}`.trim()}
+      searchText={(row) => `${row.author ?? ""} ${row.role ?? ""} ${row.company ?? ""}`.trim()}
     />
   );
 }

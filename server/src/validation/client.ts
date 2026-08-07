@@ -34,18 +34,37 @@ export const processWriteSchema = z.object({
 });
 export const processUpdateSchema = processWriteSchema.partial();
 
-export const testimonialWriteSchema = z.object({
-  author: z.string().trim().min(1),
+const testimonialBaseSchema = z.object({
+  author: optionalString,
   role: optionalString,
   company: optionalString,
-  quote: z.string().trim().min(1),
+  quote: optionalString,
   avatar: optionalString,
   projectId: optionalString,
   images: optionalStringArray,
   order: optionalNumber,
   published: optionalBoolean
 });
-export const testimonialUpdateSchema = testimonialWriteSchema.partial();
+
+export const testimonialWriteSchema = testimonialBaseSchema.superRefine((value, ctx) => {
+  const hasProofScreenshots = (value.images?.length ?? 0) > 0;
+  if (hasProofScreenshots) return;
+  if (!value.author?.trim()) {
+    ctx.addIssue({
+      code: "custom",
+      path: ["author"],
+      message: "Author is required when there are no proof screenshots"
+    });
+  }
+  if (!value.quote?.trim()) {
+    ctx.addIssue({
+      code: "custom",
+      path: ["quote"],
+      message: "Quote is required when there are no proof screenshots"
+    });
+  }
+});
+export const testimonialUpdateSchema = testimonialBaseSchema.partial();
 
 export const contactSettingsWriteSchema = z.object({
   email: z.string().trim().email().optional(),

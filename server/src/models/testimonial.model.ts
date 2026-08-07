@@ -5,10 +5,10 @@ const { Schema, model, models } = mongoose;
 
 const testimonialSchema = new Schema(
   {
-    author: { type: String, required: true, trim: true },
+    author: { type: String, trim: true, default: "" },
     role: { type: String, default: "" },
     company: { type: String, default: "" },
-    quote: { type: String, required: true },
+    quote: { type: String, default: "" },
     avatar: { type: String, default: "" },
     projectId: { type: String, default: "" },
     images: { type: [String], default: [] },

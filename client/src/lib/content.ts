@@ -115,10 +115,10 @@ export type Process = ApiDoc<{
 }>;
 
 export type Testimonial = ApiDoc<{
-  author: string;
+  author?: string;
   role?: string;
   company?: string;
-  quote: string;
+  quote?: string;
   avatar?: string;
   projectId?: string;
   images?: string[];

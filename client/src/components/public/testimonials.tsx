@@ -27,6 +27,11 @@ function TestimonialCard({
   className?: string;
 }) {
   const screenshots = item.images ?? [];
+  const author = item.author?.trim() || "";
+  const role = item.role?.trim() || "";
+  const company = item.company?.trim() || "";
+  const quote = item.quote?.trim() || "";
+  const hasIdentity = Boolean(author || item.avatar || role || company);
 
   return (
     <article
@@ -35,25 +40,29 @@ function TestimonialCard({
         className
       )}
     >
-      <Quote aria-hidden="true" className="absolute top-6 right-6 size-8 text-brand-1/20" />
+      {quote ? (
+        <>
+          <Quote aria-hidden="true" className="absolute top-6 right-6 size-8 text-brand-1/20" />
 
-      {project ? (
-        <Link
-          href={projectHref(project)}
-          className="mb-4 inline-flex w-fit items-center gap-1.5 rounded-full border border-brand-2/40 bg-brand-2/10 px-3 py-1 text-xs font-semibold text-brand-2 transition-colors hover:bg-brand-2/20"
-        >
-          <Sparkles className="size-3" />
-          {project.title}
-          <ExternalLink className="size-3" />
-        </Link>
+          {project ? (
+            <Link
+              href={projectHref(project)}
+              className="mb-4 inline-flex w-fit items-center gap-1.5 rounded-full border border-brand-2/40 bg-brand-2/10 px-3 py-1 text-xs font-semibold text-brand-2 transition-colors hover:bg-brand-2/20"
+            >
+              <Sparkles className="size-3" />
+              {project.title}
+              <ExternalLink className="size-3" />
+            </Link>
+          ) : null}
+
+          <blockquote className="text-base leading-relaxed text-foreground">
+            &ldquo;{quote}&rdquo;
+          </blockquote>
+        </>
       ) : null}
 
-      <blockquote className="text-base leading-relaxed text-foreground">
-        &ldquo;{item.quote}&rdquo;
-      </blockquote>
-
       {screenshots.length > 0 ? (
-        <div className="mt-5 grid grid-cols-3 gap-2">
+        <div className="grid grid-cols-3 gap-2">
           {screenshots.slice(0, 3).map((src, index) => (
             <div key={index} className="overflow-hidden rounded-lg border border-border">
               <img
@@ -66,30 +75,32 @@ function TestimonialCard({
         </div>
       ) : null}
 
-      <div className="mt-6 flex items-center gap-3 border-t border-border pt-5">
-        {item.avatar ? (
-          <img
-            src={item.avatar}
-            alt={item.author}
-            className="size-11 shrink-0 rounded-full object-cover"
-          />
-        ) : (
-          <span
-            aria-hidden="true"
-            className="flex size-11 shrink-0 items-center justify-center rounded-full bg-gradient-brand font-heading text-sm font-bold text-white"
-          >
-            {item.author.charAt(0).toUpperCase()}
-          </span>
-        )}
-        <div className="min-w-0">
-          <p className="font-heading font-semibold text-foreground">{item.author}</p>
-          {item.role || item.company ? (
-            <p className="truncate text-sm text-muted-foreground">
-              {[item.role, item.company].filter(Boolean).join(" · ")}
-            </p>
-          ) : null}
+      {hasIdentity ? (
+        <div className="mt-6 flex items-center gap-3 border-t border-border pt-5">
+          {item.avatar ? (
+            <img
+              src={item.avatar}
+              alt={author}
+              className="size-11 shrink-0 rounded-full object-cover"
+            />
+          ) : (
+            <span
+              aria-hidden="true"
+              className="flex size-11 shrink-0 items-center justify-center rounded-full bg-gradient-brand font-heading text-sm font-bold text-white"
+            >
+              {(author || "C").charAt(0).toUpperCase()}
+            </span>
+          )}
+          <div className="min-w-0">
+            <p className="font-heading font-semibold text-foreground">{author || "Client"}</p>
+            {role || company ? (
+              <p className="truncate text-sm text-muted-foreground">
+                {[role, company].filter(Boolean).join(" · ")}
+              </p>
+            ) : null}
+          </div>
         </div>
-      </div>
+      ) : null}
     </article>
   );
 }
