@@ -695,3 +695,62 @@
 - Begin M4: populate every entity with real content via the dashboard and run the polish pass.
 
 ---
+
+## Session 12 — 2026-08-08
+
+- **Session Duration:** Social links icons feature (multiple sub-sessions).
+- **Session Number:** 12
+- **Phase:** 1 — Foundations (M3 — Public Portfolio MVP / social links polish)
+
+### Completed Work
+
+- Client: explained the resume download button in the profile form — removed the redundant resume field and added a helper description of how the resume button works (`client/src/components/admin/forms.tsx`).
+- Server: social link model and validation gained optional `icon` (preset key) and `iconUrl` (custom upload URL) fields; validation rejects unknown preset keys and requires a URL when `iconUrl` is used; API tests extended (`server/src/models/socialLink.model.ts`, `server/src/validation/recruiter.ts`, `server/tests/api.test.ts`).
+- Client: `SocialLink` type gained `icon`/`iconUrl` (`client/src/lib/content.ts`).
+- Client: added the preset library `client/src/lib/social-icons.ts` — 17 keys, grouped (Recruiting / Freelance / Contact & social) with labels.
+- Client: added the admin `SocialIconPicker` (`client/src/components/admin/social-icon-picker.tsx`) — grouped preset grid with a selected-state check, plus a custom upload section (reuses `FilePicker`); wired into `SocialLinkForm`.
+- Client: rewrote the public `SocialIcon` (`client/src/components/public/social-icon.tsx`) to render every preset glyph and resolve render order `iconUrl` → preset `icon` → platform fallback; wired into hero, footer, and contact.
+- Client: added Mostaql and Khamsat preset icons to the Freelance group, using the official brand marks (Mostaql from the wasmenia asset store, Khamsat extracted from worldvectorlogo) rendered as monochrome `currentColor` glyphs via a custom `viewBox`.
+- Verified: server typecheck/lint/tests pass; client tsc, ESLint, and `next build` pass clean.
+
+### Problems Found
+
+- lucide-react 1.28 removed all brand icons (Twitter, Instagram, Dribbble, GitHub, LinkedIn), so the previous lucide-based fallbacks stopped typechecking; replaced them with inline monochrome SVG glyphs so all presets share one rendering path.
+- Neither Mostaql nor Khamsat exists in simple-icons (both CDN slugs 404'd and the slug list has no match); sourced the official SVG marks instead, and gave `Glyph` an optional `viewBox` prop to support non-24-unit coordinate systems.
+- worldvectorlogo/raw.githubusercontent fetches were unreliable (timeouts, 403 from mostaql.com, deleted GitHub repo); the wasmenia asset store provided the Mostaql mark.
+
+### Architecture Decisions
+
+- AD-18: Social link icons are embedded monochrome SVG glyphs (simple-icons CC0 paths + official brand marks) rather than a brand-icon library, because lucide-react dropped brand icons. Render order in `SocialIcon`: `iconUrl` (custom upload) → preset `icon` key → platform-string fallback → default link icon.
+
+### Commits Created
+
+- `feat(profile): remove redundant resume field and explain resume button in profile form`
+- `feat(server): add icon and iconUrl fields to social links`
+- `feat(social-links): icon picker with presets and custom upload`
+- `feat(social-icons): add Mostaql and Khamsat icons to presets and update Freelance group`
+- Pending: `docs(log): record session 12 - social links icons`
+
+### Files Added
+
+- `client/src/lib/social-icons.ts`
+- `client/src/components/admin/social-icon-picker.tsx`
+
+### Files Modified
+
+- `server/src/models/socialLink.model.ts`, `server/src/validation/recruiter.ts`, `server/tests/api.test.ts`
+- `client/src/lib/content.ts`, `client/src/components/admin/forms.tsx`, `client/src/components/public/{social-icon,hero,footer,contact}.tsx`
+- `docs/MASTER_PLAN.md` (AD-18, Day 7), `docs/DAILY_LOG.md` (this entry)
+
+### Remaining Tasks
+
+- Finish the session plan review (the user will share the full remaining points).
+- Fill real content via the dashboard (M4).
+- Responsive/accessibility/perf polish pass (M4).
+- Test, harden, and deploy (M5).
+
+### Tomorrow's Goal
+
+- Continue M4: populate every entity with real content via the dashboard and run the polish pass.
+
+---

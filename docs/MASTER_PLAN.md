@@ -121,6 +121,7 @@
 | AD-15 | Public animations use `motion` (Framer Motion). Why: mission-critical for the immersive scroll UX (scroll reveals, springs, layout transitions, stagger). Alternatives: hand-rolled CSS + IntersectionObserver (more code, less buttery) and Web Animations API (lower-level). Trade-offs: ~+50 kB client dependency; mature, actively maintained. Long-term: stable `motion/react` API, well-documented.                                                                                                                                                                                        | **Decided** (user-approved)        | 2026-08-06 |
 | AD-16 | Testimonials are linked to projects via an optional `projectId` field so a review can surface on the matching project detail page; reviews may also carry proof screenshots (`images`) for trust. Kept optional so unlinked reviews still render on the home carousel.                                                                                                                                                                                                                                                                                                                           | **Decided**                        | 2026-08-07 |
 | AD-17 | The resume is stored as bytes in Mongo (a `data: Buffer` on the Resume singleton) and streamed via a dedicated `GET /resume/download` endpoint (auth-free), instead of only a Cloudinary URL. Why: the resume must download as a file, and a single self-owned source avoids third-party dependency for this core document. Alternatives: keep Cloudinary raw upload (URL only — but the file had no seeded real URL, and the download path is dashboard-independent). Trade-offs: DB bloat vs. self-owned control. Long-term: fine for a single PDF document; can move to object storage later. | **Decided**                        | 2026-08-08 |
+| AD-18 | Social link icons are embedded monochrome SVG glyphs (simple-icons CC0 paths + official brand marks) rather than a brand-icon library, because lucide-react 1.x removed brand icons. Each link stores an optional preset `icon` key or custom `iconUrl`; `SocialIcon` resolves `iconUrl` → preset `icon` → platform-string fallback → default link icon. Why: zero new dependencies, consistent styling, works for niche platforms (e.g. Mostaql/Khamsat) absent from icon sets. Trade-offs: manual glyph maintenance vs. library convenience.                                                   | **Decided**                        | 2026-08-08 |
 
 ## Dependency Approval Process
 
@@ -199,10 +200,11 @@ Convention: small, focused commits, one logical task each. Suggested message for
 ## Next Session Plan
 
 1. Run the session workflow (read the four docs).
-2. Continue M4: populate every entity with real content via the dashboard (the M3 build and resume download are complete).
-3. Responsive, accessible, performant polish pass on the public site.
-4. Verify both personas (recruiter + client) can complete their full journey.
-5. Commit and close with documentation updates.
+2. Review the full session step list with the owner (the remaining points after the social-links icons feature).
+3. Continue M4: populate every entity with real content via the dashboard (the M3 build, resume download, and social-links icons are complete).
+4. Responsive, accessible, performant polish pass on the public site.
+5. Verify both personas (recruiter + client) can complete their full journey.
+6. Commit and close with documentation updates.
 
 ---
 
