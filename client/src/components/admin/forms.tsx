@@ -7,6 +7,7 @@ import type { FormEventHandler, ReactNode } from "react";
 import { useRef, useState } from "react";
 import { useForm, useWatch } from "react-hook-form";
 import { z } from "zod";
+import Link from "next/link";
 
 import {
   ColorField,
@@ -99,7 +100,6 @@ const profileSchema = z.object({
   tagline: optionalString,
   bio: optionalString,
   photo: optionalString,
-  resume: optionalString,
   yearsExperience: optionalNumber,
   contactEmail: z.string().trim().email("Enter a valid email address")
 });
@@ -122,7 +122,6 @@ export function ProfileForm({
     defaultValues: defaultValues ?? {}
   });
   const photo = useWatch({ control, name: "photo" });
-  const resumeUrl = useWatch({ control, name: "resume" });
 
   return (
     <FormShell
@@ -153,14 +152,15 @@ export function ProfileForm({
         error={errors.photo?.message}
         hint="PNG, JPG, WebP, GIF, or SVG. Max 5MB."
       />
-      <FilePicker
-        label="Resume"
-        kind="document"
-        value={resumeUrl}
-        onChange={(v) => setValue("resume", v, { shouldDirty: true })}
-        error={errors.resume?.message}
-        hint="PDF, DOC, or DOCX. Max 5MB."
-      />
+      <div className="rounded-lg border border-dashed p-3 text-xs text-muted-foreground">
+        The <strong className="font-medium text-foreground">Download resume</strong> button on the
+        public site is managed in the{" "}
+        <Link href="/admin/resume" className="font-medium text-brand-1 hover:underline">
+          Resume section
+        </Link>
+        . Upload the file there and it is served through the download endpoint — no need to add it
+        here.
+      </div>
       <TextField
         label="Contact email"
         id="contactEmail"

@@ -11,7 +11,6 @@ export const profileWriteSchema = z.object({
   tagline: optionalString,
   bio: optionalString,
   photo: optionalString,
-  resume: optionalString,
   yearsExperience: z.number().int().min(0).optional(),
   contactEmail: z.string().trim().email()
 });

@@ -34,7 +34,6 @@ async function seedContent(): Promise<void> {
       tagline: "Building modern web and mobile applications with React, Next.js, and Flutter.",
       bio: "Junior Software Developer with solid experience in building modern web and mobile applications. Specializing in React, Next.js, Flutter, and state-management solutions. Worked on real production projects and AI model evaluation, with a strong foundation in problem-solving, clean architecture, and delivering high-quality user experiences.",
       photo: "",
-      resume: "",
       yearsExperience: 2,
       contactEmail: "mustafamuhammadert31@gmail.com"
     }

@@ -55,9 +55,8 @@ export function useResume() {
 
 export function useResumeDownloadUrl() {
   const { data: resume } = useResume();
-  const { data: profile } = useProfile();
   const hasStoredResume = Boolean(resume?.fileName || resume?.fileUrl);
-  const resumeUrl = hasStoredResume ? "/api/public/resume/download" : profile?.resume?.trim() || "";
+  const resumeUrl = hasStoredResume ? "/api/public/resume/download" : "";
   return { resumeUrl, hasStoredResume };
 }
 

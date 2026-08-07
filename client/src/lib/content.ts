@@ -6,7 +6,6 @@ export type Profile = ApiDoc<{
   tagline?: string;
   bio?: string;
   photo?: string;
-  resume?: string;
   yearsExperience?: number;
   contactEmail: string;
 }>;
