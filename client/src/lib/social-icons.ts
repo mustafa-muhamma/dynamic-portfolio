@@ -10,6 +10,8 @@ export const SOCIAL_ICON_PRESETS = [
   { key: "upwork", label: "Upwork" },
   { key: "fiverr", label: "Fiverr" },
   { key: "freelancer", label: "Freelancer" },
+  { key: "mostaql", label: "Mostaql" },
+  { key: "khamsat", label: "Khamsat" },
   { key: "whatsapp", label: "WhatsApp" },
   { key: "telegram", label: "Telegram" },
   { key: "instagram", label: "Instagram" },
@@ -28,6 +30,9 @@ export const SOCIAL_ICON_LABELS = SOCIAL_ICON_PRESETS.reduce(
 
 export const SOCIAL_ICON_GROUPS: { group: string; keys: SocialIconKey[] }[] = [
   { group: "Recruiting", keys: ["github", "linkedin", "x", "leetcode", "stackoverflow"] },
-  { group: "Freelance", keys: ["upwork", "fiverr", "freelancer", "whatsapp", "telegram"] },
+  {
+    group: "Freelance",
+    keys: ["upwork", "fiverr", "freelancer", "mostaql", "khamsat", "whatsapp", "telegram"]
+  },
   { group: "Contact & social", keys: ["email", "website", "phone", "instagram", "dribbble"] }
 ];
