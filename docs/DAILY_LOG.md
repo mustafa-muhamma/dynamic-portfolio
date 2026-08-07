@@ -634,3 +634,64 @@
 - Begin M4: populate every entity with real content via the dashboard and run the polish pass.
 
 ---
+
+## Session 11 — 2026-08-08
+
+- **Session Duration:** Resume download feature (multiple sub-sessions).
+- **Session Number:** 11
+- **Phase:** 1 — Foundations (M3 — Public Portfolio MVP / resume download)
+
+### Completed Work
+
+- Server: resume is stored as bytes in Mongo (`data: Buffer`, `select: false` on the Resume singleton) and streamed as an attachment via a new public `GET /api/v1/resume/download` (`server/src/controllers/resume.controller.ts`). Falls back to a 302 redirect when only a `fileUrl` exists.
+- Server: new auth-guarded `POST /api/v1/admin/resume/upload` accepting PDF/DOC/DOCX up to 5MB via the existing document multer middleware; upserts the singleton and returns the API doc (data excluded).
+- Server: `resumeWriteSchema.fileUrl` made optional so a byte-stored resume no longer requires a URL.
+- Server: 7 new API tests (upload auth guard, missing-file 400, successful upload + public read, download streams bytes, redirect fallback) — suite now at 42 tests.
+- Client: public download proxy `GET /api/public/resume/download` (`client/src/app/api/public/resume/download/route.ts`) forwarding content-type/disposition/length/cache-control from the server.
+- Client: admin upload route `POST /api/admin/resume/upload` and `uploadResumeFile()` in `client/src/lib/media.ts`; `ResumeForm` rebuilt as an upload-and-feedback UI (file picker, type/size validation, uploading spinner, success/error states, current-file summary) in `client/src/components/admin/forms.tsx`.
+- Client: `useResumeDownloadUrl()` hook (`client/src/hooks/use-public.ts`) resolves the download URL — the proxy when bytes/URL are stored, otherwise the profile resume link. Wired into the About resume button and the hero.
+- Client: hero secondary CTA now links to the resume download (removed the now-unused `secondaryCtaUrl` field from the Hero form/type); renders a plain anchor for the download endpoint.
+- Cleanup: removed the seed's placeholder resume (fake `example.com` URL — no real file existed) and the stale hero `secondaryCtaUrl` seed field, so a seeded DB shows no dead resume button.
+- Verified: server typecheck/lint + 42 tests pass; client tsc, ESLint, and `next build` pass clean.
+
+### Problems Found
+
+- A resume stored only as a Cloudinary URL could not be downloaded as a file without an external redirect; storing bytes in Mongo makes download self-owned and dashboard-independent.
+- The previous resume form required a valid URL (`fileUrl` required), which blocked saving a byte-stored resume; made it optional.
+- The hero CTA pointed at a URL field that was no longer used; replaced with the resume download endpoint and a stored-vs-external anchor branch.
+
+### Architecture Decisions
+
+- AD-17: The resume is stored as bytes in Mongo and streamed via a dedicated auth-free `GET /resume/download`, instead of only a Cloudinary URL.
+
+### Commits Created
+
+- `feat(server): store resume bytes in Mongo and stream download`
+- `feat(client): download resume through the API proxy`
+- `feat(resume): implement resume upload functionality with validation and feedback`
+- `feat(hero): link secondary CTA to the resume download`
+- Pending: `docs(plan): record resume download feature and clean seed`
+
+### Files Added
+
+- `server/src/controllers/resume.controller.ts`
+- `client/src/app/api/public/resume/download/route.ts`, `client/src/app/api/admin/resume/upload/route.ts`
+
+### Files Modified
+
+- `server/src/models/resume.model.ts` (`data: Buffer`, `select: false`), `server/src/routes/{admin,public}.ts`, `server/src/validation/recruiter.ts`, `server/tests/api.test.ts`
+- `client/src/lib/media.ts`, `client/src/components/admin/forms.tsx` (ResumeForm rebuild), `client/src/components/public/{about,hero}.tsx`, `client/src/hooks/use-public.ts`, `client/src/lib/content.ts`
+- `server/src/scripts/seed-content.ts` (removed placeholder resume + stale hero `secondaryCtaUrl`)
+- `docs/MASTER_PLAN.md` (AD-17, Day 7, next session plan), `docs/DAILY_LOG.md` (this entry)
+
+### Remaining Tasks
+
+- Fill real content via the dashboard (M4) — the M3 build and resume download are complete.
+- Responsive/accessibility/perf polish pass (M4).
+- Test, harden, and deploy (M5).
+
+### Tomorrow's Goal
+
+- Begin M4: populate every entity with real content via the dashboard and run the polish pass.
+
+---
