@@ -19,7 +19,7 @@ export const profileUpdateSchema = profileWriteSchema.partial();
 
 export const resumeWriteSchema = z.object({
   fileName: z.string().trim().min(1),
-  fileUrl: z.string().trim().url(),
+  fileUrl: z.string().trim().optional(),
   mimeType: optionalString,
   size: optionalNumber
 });

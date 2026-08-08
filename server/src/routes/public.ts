@@ -1,6 +1,7 @@
 import { Router } from "express";
 
 import { createInquiry } from "../controllers/inquiry.controller.js";
+import { getResumeDownload } from "../controllers/resume.controller.js";
 import {
   getContactSettings,
   getHero,
@@ -34,6 +35,7 @@ router.get("/testimonials", listTestimonials);
 
 router.get("/profile", getProfile);
 router.get("/resume", getResume);
+router.get("/resume/download", getResumeDownload);
 router.get("/hero", getHero);
 router.get("/contact-settings", getContactSettings);
 router.get("/site-settings", getSiteSettings);

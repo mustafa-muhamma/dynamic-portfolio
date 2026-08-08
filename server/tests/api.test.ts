@@ -5,6 +5,7 @@ import { createApp } from "../src/createApp.js";
 import { ContactSettingsModel } from "../src/models/contactSettings.model.js";
 import { ProfileModel } from "../src/models/profile.model.js";
 import { ProjectModel } from "../src/models/project.model.js";
+import { ResumeModel } from "../src/models/resume.model.js";
 import { SkillModel } from "../src/models/skill.model.js";
 import { connectTestDb, disconnectTestDb, testAdmin } from "./helpers.js";
 
@@ -350,5 +351,62 @@ describe("media upload", () => {
       .attach("file", Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]), "test.png")
       .expect(500);
     expect(res.body.error.code).toBe("MEDIA_NOT_CONFIGURED");
+  });
+});
+
+describe("resume upload and download", () => {
+  beforeAll(async () => {
+    await ResumeModel.deleteMany({});
+  });
+
+  it("rejects upload without a token", async () => {
+    await request(app)
+      .post("/api/v1/admin/resume/upload")
+      .attach("file", Buffer.from("%PDF-1.4 test"), {
+        filename: "resume.pdf",
+        contentType: "application/pdf"
+      })
+      .expect(401);
+  });
+
+  it("rejects non-document files", async () => {
+    const res = await request(app)
+      .post("/api/v1/admin/resume/upload")
+      .set("Authorization", `Bearer ${token}`)
+      .attach("file", Buffer.from("hello"), "test.txt")
+      .expect(400);
+    expect(res.body.error.code).toBe("UPLOAD_ERROR");
+  });
+
+  it("stores a PDF and streams it for download", async () => {
+    const pdf = Buffer.from("%PDF-1.4 \n resume bytes");
+    await request(app)
+      .post("/api/v1/admin/resume/upload")
+      .set("Authorization", `Bearer ${token}`)
+      .attach("file", pdf, { filename: "Mustafa-CV.pdf", contentType: "application/pdf" })
+      .expect(200);
+
+    const meta = await request(app).get("/api/v1/resume").expect(200);
+    expect(meta.body.fileName).toBe("Mustafa-CV.pdf");
+    expect(meta.body.mimeType).toBe("application/pdf");
+    expect(meta.body.data).toBeUndefined();
+
+    const dl = await request(app).get("/api/v1/resume/download").expect(200);
+    expect(dl.headers["content-type"]).toContain("application/pdf");
+    expect(dl.headers["content-disposition"]).toContain("attachment");
+    expect(dl.headers["content-disposition"]).toContain("Mustafa-CV.pdf");
+    expect(Buffer.from(dl.body)).toEqual(pdf);
+  });
+
+  it("redirects to fileUrl when no stored bytes exist", async () => {
+    await ResumeModel.deleteMany({});
+    await ResumeModel.create({
+      fileName: "legacy.pdf",
+      fileUrl: "https://example.com/cv.pdf",
+      mimeType: "application/pdf",
+      size: 0
+    });
+    const res = await request(app).get("/api/v1/resume/download").expect(302);
+    expect(res.headers.location).toBe("https://example.com/cv.pdf");
   });
 });

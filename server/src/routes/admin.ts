@@ -1,4 +1,5 @@
 import { Router } from "express";
+import multer from "multer";
 
 import {
   createOne,
@@ -9,7 +10,9 @@ import {
   upsertOne
 } from "../controllers/admin.controller.js";
 import { deleteInquiry, listInquiries, updateInquiry } from "../controllers/inquiry.controller.js";
+import { uploadResume } from "../controllers/resume.controller.js";
 import { requireAuth } from "../middleware/auth.js";
+import { uploadDocument } from "../middleware/upload.js";
 import { ContactSettingsModel } from "../models/contactSettings.model.js";
 import { EducationModel } from "../models/education.model.js";
 import { ExperienceModel } from "../models/experience.model.js";
@@ -64,6 +67,28 @@ router.put(
   upsertOne(ProfileModel, profileWriteSchema, profileUpdateSchema)
 );
 router.put("/resume", requireAuth, upsertOne(ResumeModel, resumeWriteSchema, resumeUpdateSchema));
+router.post(
+  "/resume/upload",
+  requireAuth,
+  (req, res, next) => {
+    uploadDocument.single("file")(req, res, (err: unknown) => {
+      if (err) {
+        const isMulter = err instanceof multer.MulterError;
+        const message = isMulter
+          ? err.code === "LIMIT_FILE_SIZE"
+            ? "File too large (max 5MB)"
+            : err.message
+          : err instanceof Error
+            ? err.message
+            : "Upload failed";
+        const code = isMulter ? err.code : "UPLOAD_ERROR";
+        return res.status(400).json({ error: { code, message } });
+      }
+      next();
+    });
+  },
+  uploadResume
+);
 router.put("/hero", requireAuth, upsertOne(HeroModel, heroWriteSchema, heroUpdateSchema));
 
 router.get("/profile", requireAuth, getOne(ProfileModel, "Profile"));

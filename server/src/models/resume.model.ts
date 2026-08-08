@@ -6,9 +6,10 @@ const { Schema, model, models } = mongoose;
 const resumeSchema = new Schema(
   {
     fileName: { type: String, required: true, trim: true },
-    fileUrl: { type: String, required: true, trim: true },
+    fileUrl: { type: String, default: "", trim: true },
     mimeType: { type: String, default: "application/pdf" },
-    size: { type: Number, default: 0 }
+    size: { type: Number, default: 0 },
+    data: { type: Buffer, select: false }
   },
   { timestamps: true, versionKey: false }
 );
