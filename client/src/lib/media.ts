@@ -62,3 +62,40 @@ export async function uploadFile(file: File, kind: UploadKind): Promise<Uploaded
 
   return data as UploadedAsset;
 }
+
+export interface ResumeUploadResult {
+  id: string;
+  fileName: string;
+  fileUrl: string;
+  mimeType?: string;
+  size?: number;
+}
+
+export async function uploadResumeFile(file: File): Promise<ResumeUploadResult> {
+  const body = new FormData();
+  body.append("file", file);
+
+  const res = await fetch("/api/admin/resume/upload", {
+    method: "POST",
+    body,
+    cache: "no-store"
+  });
+
+  if (res.status === 401) {
+    await handleUnauthorized();
+    throw new ApiError(401, "Session expired. Please log in again.");
+  }
+
+  const text = await res.text();
+  const data = text
+    ? (JSON.parse(text) as ResumeUploadResult | { error?: { message?: string } })
+    : undefined;
+
+  if (!res.ok) {
+    const message =
+      (data as { error?: { message?: string } })?.error?.message ?? `Upload failed (${res.status})`;
+    throw new ApiError(res.status, message);
+  }
+
+  return data as ResumeUploadResult;
+}

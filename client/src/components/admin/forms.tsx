@@ -1,7 +1,10 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useQueryClient } from "@tanstack/react-query";
+import { FileText, Loader2, Upload } from "lucide-react";
 import type { FormEventHandler, ReactNode } from "react";
+import { useRef, useState } from "react";
 import { useForm, useWatch } from "react-hook-form";
 import { z } from "zod";
 
@@ -18,6 +21,7 @@ import { FilePicker, ImageListPicker } from "@/components/admin/file-picker";
 import type { ResourceFormProps } from "@/components/admin/collection-manager";
 import { useCollectionList } from "@/hooks/use-content";
 import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
 import {
   Select,
   SelectContent,
@@ -25,6 +29,7 @@ import {
   SelectTrigger,
   SelectValue
 } from "@/components/ui/select";
+import { DOCUMENT_ACCEPT, uploadResumeFile, validateFile } from "@/lib/media";
 import type {
   ContactSettings,
   Education,
@@ -177,60 +182,98 @@ export function ProfileForm({
   );
 }
 
-const resumeSchema = z.object({
-  fileName: optionalString,
-  fileUrl: z.string().trim().url("Enter a valid URL"),
-  mimeType: optionalString,
-  size: optionalNumber
-});
-
-function fileNameFromUrl(url: string): string {
-  const base = url.split("?")[0].split("/").pop() ?? "";
-  return base || url;
+function formatBytes(bytes?: number): string {
+  if (!bytes) return "";
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+  return `${(bytes / 1024 / 1024).toFixed(1)} MB`;
 }
 
-export function ResumeForm({
-  defaultValues,
-  submitting,
-  onSubmit,
-  onCancel
-}: ResourceFormProps<Resume>) {
-  const {
-    handleSubmit,
-    setValue,
-    control,
-    formState: { errors }
-  } = useForm({
-    resolver: zodResolver(resumeSchema),
-    defaultValues: defaultValues ?? {}
-  });
-  const fileUrl = useWatch({ control, name: "fileUrl" });
-  const fileName = useWatch({ control, name: "fileName" });
+export function ResumeForm({ defaultValues }: ResourceFormProps<Resume>) {
+  const inputRef = useRef<HTMLInputElement>(null);
+  const queryClient = useQueryClient();
+  const [uploading, setUploading] = useState(false);
+  const [error, setError] = useState<string>();
+  const [success, setSuccess] = useState(false);
+
+  async function handleFiles(files: FileList | null) {
+    const file = files?.[0];
+    if (!file) return;
+    const validation = validateFile(file, "document");
+    if (validation) {
+      setError(validation);
+      if (inputRef.current) inputRef.current.value = "";
+      return;
+    }
+    setUploading(true);
+    setError(undefined);
+    setSuccess(false);
+    try {
+      await uploadResumeFile(file);
+      setSuccess(true);
+      queryClient.invalidateQueries({ queryKey: ["resume"] });
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Upload failed");
+    } finally {
+      setUploading(false);
+      if (inputRef.current) inputRef.current.value = "";
+    }
+  }
 
   return (
-    <FormShell
-      onSubmit={handleSubmit((v) =>
-        onSubmit({ ...v, fileName: v.fileName ?? fileNameFromUrl(v.fileUrl) })
+    <div className="flex flex-col gap-4">
+      <div className="flex flex-col gap-1.5">
+        <Label>Resume file</Label>
+        <div className="flex items-center gap-3 rounded-lg border p-3">
+          {uploading ? (
+            <Loader2 className="size-10 animate-spin text-muted-foreground" />
+          ) : (
+            <div className="flex size-10 items-center justify-center rounded-md bg-muted text-muted-foreground">
+              <FileText className="size-5" />
+            </div>
+          )}
+          <div className="flex flex-col gap-1">
+            <div className="flex items-center gap-2">
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => inputRef.current?.click()}
+                disabled={uploading}
+              >
+                {uploading ? <Loader2 className="animate-spin" /> : <Upload />}
+                {uploading ? "Uploading..." : "Upload"}
+              </Button>
+              <input
+                ref={inputRef}
+                type="file"
+                accept={DOCUMENT_ACCEPT}
+                className="hidden"
+                onChange={(e) => handleFiles(e.target.files)}
+              />
+            </div>
+            <p className="text-xs text-muted-foreground">
+              PDF, DOC, or DOCX. Max 5MB. Replaces the current resume file.
+            </p>
+          </div>
+        </div>
+        {error ? <p className="text-sm text-destructive">{error}</p> : null}
+        {success ? <p className="text-sm text-brand-2">Resume uploaded successfully.</p> : null}
+      </div>
+      {defaultValues?.fileName ? (
+        <div className="rounded-lg border p-3 text-sm">
+          <p className="font-medium">{defaultValues.fileName}</p>
+          <p className="mt-0.5 text-xs text-muted-foreground">
+            {defaultValues.mimeType}
+            {defaultValues.size ? ` · ${formatBytes(defaultValues.size)}` : ""}
+          </p>
+        </div>
+      ) : (
+        <p className="text-xs text-muted-foreground">
+          No resume uploaded yet. The file becomes available on the public site after upload.
+        </p>
       )}
-      onCancel={onCancel}
-      submitting={submitting}
-    >
-      <FilePicker
-        label="Resume file"
-        kind="document"
-        value={fileUrl}
-        onChange={(url) => setValue("fileUrl", url, { shouldDirty: true })}
-        onUploaded={(asset, file) => {
-          setValue("fileName", file.name, { shouldDirty: true });
-          setValue("fileUrl", asset.url, { shouldDirty: true });
-          setValue("mimeType", file.type || "application/pdf", { shouldDirty: true });
-          setValue("size", asset.bytes, { shouldDirty: true });
-        }}
-        error={errors.fileUrl?.message}
-        hint="PDF, DOC, or DOCX. Max 5MB."
-      />
-      {fileName && <p className="text-xs text-muted-foreground">File name: {fileName}</p>}
-    </FormShell>
+    </div>
   );
 }
 
