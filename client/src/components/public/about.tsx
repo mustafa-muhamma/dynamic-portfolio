@@ -33,7 +33,8 @@ export function About() {
   const photo = profile?.photo || "";
   const bio = profile?.bio?.trim() || "";
   const bioParagraphs = bio.split(/\n+/).filter(Boolean);
-  const resumeUrl = profile?.resume?.trim() || resume?.fileUrl || "";
+  const hasStoredResume = Boolean(resume?.fileName || resume?.fileUrl);
+  const resumeUrl = hasStoredResume ? "/api/public/resume/download" : profile?.resume?.trim() || "";
   const email = profile?.contactEmail?.trim() || "";
 
   const [copiedLabel, setCopiedLabel] = useState<string>();
@@ -186,15 +187,25 @@ export function About() {
             {resumeUrl ? (
               <Reveal delay={0.15} className="mt-10">
                 <Magnetic>
-                  <Link
-                    href={resumeUrl}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="btn-gradient group inline-flex items-center gap-2 rounded-full px-6 py-3 text-sm font-semibold text-white"
-                  >
-                    <Download className="size-4 transition-transform group-hover:translate-y-0.5" />
-                    Download resume
-                  </Link>
+                  {hasStoredResume ? (
+                    <a
+                      href={resumeUrl}
+                      className="btn-gradient group inline-flex items-center gap-2 rounded-full px-6 py-3 text-sm font-semibold text-white"
+                    >
+                      <Download className="size-4 transition-transform group-hover:translate-y-0.5" />
+                      Download resume
+                    </a>
+                  ) : (
+                    <Link
+                      href={resumeUrl}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="btn-gradient group inline-flex items-center gap-2 rounded-full px-6 py-3 text-sm font-semibold text-white"
+                    >
+                      <Download className="size-4 transition-transform group-hover:translate-y-0.5" />
+                      Download resume
+                    </Link>
+                  )}
                 </Magnetic>
               </Reveal>
             ) : null}
