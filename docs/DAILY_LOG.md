@@ -814,3 +814,54 @@
 - Continue M4: remaining review points, populate real content via the dashboard, and finish the polish pass.
 
 ---
+
+## Session 14 — 2026-08-09
+
+- **Session Duration:** Navigation fix + review regression revert + M4 closure.
+- **Session Number:** 14
+- **Phase:** 1 — Foundations (M4 — Content & Polish closure)
+
+### Completed Work
+
+- Applied the navigation fix as the only surviving "last update": key-based active-section tracking via `NAV_SPY` (`client/src/lib/sections.ts`), nav active state keyed by `item.key` instead of the href fragment, and a preferred nav order sort (`client/src/components/public/nav.tsx`, `server/src/scripts/seed-content.ts`). Verified with `tsc --noEmit` and ESLint; committed as `f6fefe9`.
+- Investigated a regression where contact info (Email, Phone, Location, Availability) appeared missing in both About and Contact, with sections rendering blank after the full set of review "last updates" was applied.
+  - Database verified intact: `contactsettings` holds all four fields (`mongodb://127.0.0.1:27017/portfolio`); the public API serves them (`GET /api/v1/contact-settings`).
+  - Real-browser (Chrome DevTools Protocol) tests confirmed the local app renders the data visibly after scrolling; the earlier "opacity 0" findings were a headless `--dump-dom` virtual-time artifact.
+- Decision made by the owner: the review-update commits were rejected. `main` was reset to the last known-good commit `5cd13da`, the four commits were preserved on `backup/session-14-changes`, and only the nav fix was re-applied. `origin/main` was force-pushed (`--force-with-lease`) so the remote matches local and the unwanted commits are gone.
+- Closed M4 in the master plan, recording only the surviving nav update; deferred content population and the residual polish pass to M5.
+
+### Problems Found
+
+- Applying the full "last updates" set caused sections/content to disappear for the owner on local and deployed, even though the DB and API were intact and the data rendered correctly in automated real-browser checks.
+- The remote had 4 commits the owner did not want (the reverted review updates); a normal push was rejected as non-fast-forward.
+
+### Solutions
+
+- Reverted `main` to `5cd13da` and kept the four commits on a backup branch; re-applied only the navigation commit on top and force-pushed with `--force-with-lease` to align the remote.
+
+### Architecture Decisions
+
+- (none new)
+
+### Commits Created
+
+- `fix(nav): update navigation item keys and improve scroll behavior` (`f6fefe9`) — the only review-update change kept.
+- Pending: `docs(log): record session 14 - navigation fix and M4 closure`
+
+### Files Modified
+
+- `client/src/components/public/nav.tsx`, `client/src/lib/sections.ts`, `server/src/scripts/seed-content.ts` (nav fix)
+- `docs/MASTER_PLAN.md` (M4 closed, open items deferred to M5), `docs/DAILY_LOG.md` (this entry)
+
+### Remaining Tasks
+
+- M5: populate every entity with real content via the dashboard (deferred from M4).
+- Finish the responsive/accessibility/perf polish pass (deferred from M4).
+- Security review, tests, and performance pass.
+- Deploy the public portfolio + dashboard.
+
+### Tomorrow's Goal
+
+- Start M5: populate real content via the dashboard and run the hardening pass.
+
+---

@@ -1,7 +1,7 @@
 # MASTER PLAN
 
 > **Status:** Active
-> **Last Updated:** 2026-08-08
+> **Last Updated:** 2026-08-09
 >
 > This document defines **HOW** we build the product. It is the project's **source of truth** and is updated continuously.
 >
@@ -11,11 +11,11 @@
 
 ## Current Phase
 
-**Phase 1 — Foundations** (M0–M3 complete; dashboard + public portfolio delivered)
+**Phase 1 — Foundations** (M0–M4 complete; dashboard + public portfolio delivered; M5 — hardening & launch)
 
 ## Current Day
 
-- **Day 7** of the project (2026-08-08).
+- **Day 8** of the project (2026-08-09).
 
 ## Overall Progress
 
@@ -25,14 +25,15 @@
 - [x] Server (headless API)
 - [x] Dashboard (admin routes in `client/`)
 - [x] Public portfolio
-- [ ] Content completeness
+- [ ] Content completeness (deferred to M5)
 - [ ] Hardening & launch
 
-**Progress: ~75%**
+**Progress: ~85%**
 
 ## Remaining Work
 
-- Fill real content via the dashboard (M4).
+- Populate every entity with real content via the dashboard (M5 — deferred from M4).
+- Finish the responsive/accessibility/perf polish pass (M5 — deferred from M4).
 - Test, harden, and deploy (M5).
 
 ## Milestones
@@ -89,26 +90,24 @@
 - [x] Testimonials link to projects (`projectId`) and carry optional proof screenshots, editable from the dashboard.
       **Exit criteria met:** AC-02 satisfied — zero hardcoded content in the frontend (all content comes from the API).
 
-### M4 — Content & Polish
+### M4 — Content & Polish (Complete)
 
 **Goal:** The portfolio is filled with real content via the dashboard.
-**Deliverables:**
-
-- Populate all entities.
-- Responsive, accessible, performant design.
-  **Exit criteria:** Both personas can complete their full journey.
-
-**In progress (2026-08-08):**
+**Deliverables (final scope):**
 
 - [x] Review fixes: testimonials conditional validation, projects auto-playing carousel, responsive polish (hero/nav/about/contact), process order 1→N.
-- [ ] Remaining responsive/accessibility/perf pass.
-- [ ] Populate every entity with real content via the dashboard.
+- [x] Last updates: navigation active-section tracking + scroll behavior fix — key-based `NAV_SPY` ordering in `sections.ts`, applied to `client/src/components/public/nav.tsx`, `client/src/lib/sections.ts`, `server/src/scripts/seed-content.ts`.
+      **Exit criteria:** Both personas can complete their full journey.
+
+> **Closed 2026-08-09.** The remaining M4 items — populating every entity with real content via the dashboard and the residual responsive/accessibility/perf pass — were deferred to M5 (see below).
 
 ### M5 — Hardening & Launch
 
 **Goal:** Production-ready.
 **Deliverables:**
 
+- Populate every entity with real content via the dashboard (deferred from M4).
+- Finish the responsive/accessibility/perf polish pass (deferred from M4).
 - Security review, tests, performance pass.
 - Deployment for public portfolio + dashboard.
   **Exit criteria:** Live site; project success criteria all true.
@@ -206,11 +205,12 @@ Convention: small, focused commits, one logical task each. Suggested message for
 ## Next Session Plan
 
 1. Run the session workflow (read the four docs).
-2. Review the full session step list with the owner (the remaining points after the review-fixes session).
-3. Continue M4: populate every entity with real content via the dashboard (the M3 build, resume download, social-links icons, testimonials validation, projects carousel, and responsive polish are complete).
-4. Finish the responsive/accessibility/perf polish pass on the public site.
-5. Verify both personas (recruiter + client) can complete their full journey.
-6. Commit and close with documentation updates.
+2. M5: populate every entity with real content via the dashboard (deferred from M4).
+3. Finish the responsive/accessibility/perf polish pass on the public site (deferred from M4).
+4. Security review, tests, and performance pass.
+5. Deploy the public portfolio + dashboard (Vercel, backend provider, MongoDB Atlas, Cloudinary).
+6. Verify the project success criteria against the live site.
+7. Commit and close with documentation updates.
 
 ---
 
