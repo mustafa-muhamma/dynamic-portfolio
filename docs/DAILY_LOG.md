@@ -932,3 +932,59 @@
 - Continue M5: populate real content via the dashboard and run the hardening/security pass.
 
 ---
+
+## Session 16 — 2026-08-09
+
+- **Session Duration:** Public bundle endpoint — one request per page load (cold-start follow-up).
+- **Session Number:** 16
+- **Phase:** 1 — Foundations (M5 — Hardening & Launch)
+
+### Completed Work
+
+- Committed the Session 15 leftovers (pool-cap fix + deploy docs) as the pending commits from the previous session.
+- **Server:** added `GET /api/v1/bundle` (`server/src/controllers/public.controller.ts` `getPublicBundle`, `server/src/routes/public.ts`) returning every public entity in one response: profile, hero, resume meta (bytes stay excluded), contact/site settings, social links, experience, education, skills, projects, services, pricing, process, testimonials. Lists keep `published + order` semantics; missing singletons serialize as `null`; all queries run in parallel on the one connection. One API test added (suite now 44 tests); server typecheck/lint/tests/build pass.
+- **Client:** added the `PublicBundle` type (`client/src/lib/content.ts`) and `getPublicBundle()` (`client/src/lib/public-api.ts`); refactored `client/src/hooks/use-public.ts` so every public hook (`useProfile`, `useHero`, `useProjects`, …) reads a slice of a single `useQuery(["public","bundle"])` via `usePublicSlice` (`select`), replacing the previous 14 per-entity queries. Component code untouched — same hook names, same shapes. `useProjectBySlug` stays its own query (project detail page). Client tsc/ESLint/build pass; verified live that `/api/public/bundle` round-trips 200 with all content in one request (~0.5s warm).
+- Docs: recorded AD-20 in MASTER_PLAN and appended this entry.
+- Content completeness confirmed by the owner (2026-08-09): every entity is populated via the dashboard. MASTER_PLAN M5 marked complete and progress raised to ~95%.
+
+### Problems Found
+
+- The client refactor initially left the now-unused per-entity type imports in `use-public.ts`; ESLint flagged 13 unused-import warnings and they were removed.
+
+### Solutions
+
+- Trimmed the import list to `Project` + `PublicBundle` (only types still referenced directly); the remaining 10 lint warnings are the pre-existing `<img>` notices.
+
+### Architecture Decisions
+
+- AD-20: Public content is served as a single `GET /api/v1/bundle`; the frontend fetches it once and each hook selects its slice — so a cold page load makes **1 request instead of ~14**, one Vercel instance, one DB connect (see AD-19). Individual read endpoints remain for future consumers.
+
+### Commits Created
+
+- `perf(server): cap mongoose pool to one connection to avoid Atlas throttling` (`2d2ac90`)
+- `docs(deploy): record deployment, cold-start optimization, and connection pool fix` (`fa6c9ab`)
+- `feat(server): add public bundle endpoint` (`d0a7a4a`)
+- `feat(client): fetch public content as a single bundle request` (`a90de7c`)
+- Pending: `docs(plan): record public bundle endpoint and close session`
+
+### Files Added
+
+- (none)
+
+### Files Modified
+
+- `server/src/controllers/public.controller.ts`, `server/src/routes/public.ts`, `server/tests/api.test.ts`
+- `client/src/lib/content.ts`, `client/src/lib/public-api.ts`, `client/src/hooks/use-public.ts`
+- `docs/MASTER_PLAN.md` (AD-20, M5 checklist, next session plan), `docs/DAILY_LOG.md` (this entry)
+
+### Remaining Tasks
+
+- Finish the responsive/accessibility/perf polish pass (deferred from M4).
+- Security review, tests, and performance pass against the live site — re-verify the cold page load as a single request.
+- Delete the test inquiry from the production dashboard inbox.
+
+### Tomorrow's Goal
+
+- Continue M5: run the hardening/security pass and finish the polish pass.
+
+---
