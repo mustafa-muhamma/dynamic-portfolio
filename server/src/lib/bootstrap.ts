@@ -23,7 +23,10 @@ async function connectDatabase(): Promise<void> {
   try {
     await mongoose.connect(env.MONGODB_URI, {
       serverSelectionTimeoutMS: SERVER_SELECTION_TIMEOUT_MS,
-      connectTimeoutMS: CONNECT_TIMEOUT_MS
+      connectTimeoutMS: CONNECT_TIMEOUT_MS,
+      maxPoolSize: 1,
+      minPoolSize: 0,
+      maxIdleTimeMS: 60_000
     });
     logger.info("[database] connected");
   } catch (error) {
