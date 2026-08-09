@@ -149,6 +149,23 @@ export type Inquiry = ApiDoc<{
   createdAt?: string;
 }>;
 
+export type PublicBundle = {
+  profile: Profile | null;
+  hero: Hero | null;
+  resume: Resume | null;
+  contactSettings: ContactSettings | null;
+  siteSettings: SiteSettings | null;
+  socialLinks: SocialLink[];
+  experience: Experience[];
+  education: Education[];
+  skills: Skill[];
+  projects: Project[];
+  services: Service[];
+  pricing: Pricing[];
+  process: Process[];
+  testimonials: Testimonial[];
+};
+
 export const COLLECTIONS = {
   experience: "experience",
   education: "education",

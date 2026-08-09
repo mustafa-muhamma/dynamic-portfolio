@@ -1,3 +1,5 @@
+import type { PublicBundle } from "@/lib/content";
+
 export class PublicApiError extends Error {
   status: number;
 
@@ -17,6 +19,10 @@ async function getJson<T>(path: string): Promise<T> {
 
 export function listResource<T>(path: string): Promise<T[]> {
   return getJson<T[]>(path);
+}
+
+export function getPublicBundle(): Promise<PublicBundle> {
+  return getJson<PublicBundle>("/bundle");
 }
 
 export async function getSingleton<T>(path: string): Promise<T | undefined> {
