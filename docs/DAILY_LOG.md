@@ -865,3 +865,70 @@
 - Start M5: populate real content via the dashboard and run the hardening pass.
 
 ---
+
+## Session 15 — 2026-08-09
+
+- **Session Duration:** M5 — full deployment (Vercel + Atlas + Cloudinary) and serverless cold-start optimization.
+- **Session Number:** 15
+- **Phase:** 1 — Foundations (M5 — Hardening & Launch)
+
+### Completed Work
+
+- Ran the session workflow; proposed the M5 plan (content, polish, hardening, deploy). Owner decisions: **defer content population**, **skip polish for now**, **full deploy now**.
+- Audited the deployment surface: `NEXT_PUBLIC_API_URL` is the only client env var (`client/src/lib/config.ts`), all API traffic proxied through Next (no CORS exposure), server env per `server/src/config/env.ts`, no `vercel.json`/`render.yaml`/CI existed.
+- Owner deployed **both server and client to Vercel** (reported "no data on first render"). Diagnosed via the live health endpoint: the DB/env/Atlas race at first deploy caused the empty first paint, and Vercel serverless **cold starts were intermittently returning 503** — my probes hit a 503 on a cold instance while a warm instance (uptime 289s) answered in ~0.5s. Root cause: `bootstrap()` awaited Atlas connect + `ensureAdmin()` + a Cloudinary API ping on every cold boot, pushing past Vercel's 10s function limit.
+- Fixed cold starts in `server/src/lib/bootstrap.ts` (AD-19): only the DB connect blocks the first response; `seedAdmin()` and `verifyMediaStorage()` are now fire-and-forget (still logged), and `mongoose.connect` caps `serverSelectionTimeoutMS`/`connectTimeoutMS` at 5s so a slow Atlas link fails fast.
+- Verified: server typecheck, ESLint, all **43 tests**, and build pass. Owner committed `153650a`.
+- After redeploy, measured the live API: cold start **200 in ~4.5–5.3s** (previously 503), warm requests **0.4–0.6s**. Frontend re-verified: home 0.6s, `/api/public/*` proxies fast and return full content.
+- Verified the deployed API end-to-end: `/api/v1/health` 200 with DB connected; profile/hero/projects/skills 200 with real data; `/api/v1/resume/download` streams the PDF (200, application/pdf, 50 KB); `/api/v1/admin/hero` returns 401 unauthenticated; `/api/v1/inquiries` returns 201.
+- Closed out docs: AD-06 updated (backend → Vercel serverless, not Railway/Render), AD-19 added, PRD §13 deployment line + §17 provider question marked resolved, MASTER_PLAN progress ~90% and M5 deployment checklist ticked, this log entry appended.
+- Second round of verification after redeploy exposed residual cold-start flakiness (see Problems Found): the first request after idle still 503'd. Root cause: Mongoose's default **100-connection pool** across many cold Vercel instances exhausted the Atlas M0 connection limit, so new connects failed fast (<1s) and occasionally hung (120s). Fixed by capping `maxPoolSize: 1`, `minPoolSize: 0`, `maxIdleTimeMS: 60s` on `mongoose.connect` (AD-19).
+- Re-verified live after the pool fix: cold start 200 in 5.9s; a **burst of 13 parallel cold requests all returned 200 in 7s** (simulated page load — previously the first ones 503'd); frontend proxies 0.5–1.4s. No stale-content gap.
+
+### Problems Found
+
+- "No data on first render" right after the first deploy — the backend was still connecting to Atlas / env vars were settling, so the first requests failed.
+- Vercel serverless cold starts intermittently returned HTTP 503 because the awaited Cloudinary ping and multi-step boot exceeded the 10s function limit; warm requests were fine.
+- A test inquiry (`t@t.com`) was posted to the production DB during verification — owner should delete it in the dashboard (`/admin/inquiries`).
+- After the first cold-start fix, the deployed API still 503'd on the **first request after idle** (fast fail, <1s) and occasionally hung entirely (requests took >120s). Concurrent cold instances each opened a Mongoose pool defaulting to 100 connections → Atlas M0 throttled/blocked new connects. The frontend then showed stale/empty content for the first seconds of a render until retries hit a warm instance.
+
+### Solutions
+
+- Set `MONGODB_URI` on the deployed server project and Atlas Network Access to allow `0.0.0.0/0` (owner); the API then connected and served all content.
+- Trimmed the serverless boot path (AD-19) so the first response only waits on the DB connect; measured the improvement live (503 → 200, warm ~0.5s).
+- Capped the Mongoose connection pool (`maxPoolSize: 1`, `minPoolSize: 0`, `maxIdleTimeMS: 60s`) so each cold instance holds one connection; verified live that a 13-request parallel burst (cold page load) now returns all 200s in ~7s with no 503s or stale content.
+
+### Architecture Decisions
+
+- AD-06 (updated): Backend deployed on **Vercel** (serverless Node function) instead of Railway/Render — the Express app ships a serverless `handler` (`server/src/index.ts`), and the owner deployed it there. Frontend stays on Vercel.
+- AD-19: Serverless cold start blocks only on DB connect; admin seed + Cloudinary boot check run fire-and-forget; `mongoose.connect` caps selection/connect timeouts at 5s.
+
+### Commits Created
+
+- `perf(server): trim cold-start work and cap database connect timeouts` (`153650a`)
+- Pending: `perf(server): cap mongoose pool to one connection to avoid Atlas throttling`
+- Pending: `docs(deploy): record deployment, cold-start optimization, and connection pool fix`
+
+### Files Added
+
+- `docs/DEPLOYMENT.md` (deploy guide)
+
+### Files Modified
+
+- `server/src/lib/bootstrap.ts` (cold-start optimization)
+- `docs/MASTER_PLAN.md` (AD-06, AD-19, M5 checklist, progress ~90%, backlog, next session)
+- `docs/PRODUCT_REQUIREMENTS.md` (§13 deployment line, §17 provider resolved)
+- `docs/DAILY_LOG.md` (this entry)
+
+### Remaining Tasks
+
+- M5: populate every entity with real content via the dashboard (education, pricing, testimonials are empty).
+- Finish the responsive/accessibility/perf polish pass (deferred from M4).
+- Security review, tests, and performance pass against the live site.
+- Delete the test inquiry from the production dashboard inbox.
+
+### Tomorrow's Goal
+
+- Continue M5: populate real content via the dashboard and run the hardening/security pass.
+
+---
