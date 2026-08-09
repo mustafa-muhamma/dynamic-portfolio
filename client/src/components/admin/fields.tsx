@@ -1,8 +1,9 @@
 "use client";
 
-import { Calendar } from "lucide-react";
+import { Calendar, Plus, Trash2 } from "lucide-react";
 import type { ReactNode } from "react";
 
+import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
@@ -132,33 +133,54 @@ export function TextAreaField({
 export function ListField({
   label,
   error,
-  hint = "One item per line.",
+  hint = "One item per row.",
   value,
-  onChange,
-  rows = 4
+  onChange
 }: {
   label: string;
   error?: string;
   hint?: string;
   value?: string[];
   onChange: (value: string[]) => void;
-  rows?: number;
 }) {
+  const items = value ?? [];
   return (
     <Field label={label} error={error} hint={hint}>
-      <Textarea
-        rows={rows}
-        aria-invalid={!!error}
-        value={(value ?? []).join("\n")}
-        onChange={(e) =>
-          onChange(
-            e.target.value
-              .split("\n")
-              .map((line) => line.trim())
-              .filter(Boolean)
-          )
-        }
-      />
+      <div className="flex flex-col gap-2">
+        {items.map((item, index) => (
+          <div key={index} className="flex items-center gap-2">
+            <Input
+              value={item}
+              aria-invalid={!!error}
+              autoFocus={item === "" && index === items.length - 1}
+              onChange={(e) => {
+                const next = [...items];
+                next[index] = e.target.value;
+                onChange(next.map((s) => s.trim()).filter(Boolean));
+              }}
+            />
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              aria-label={`Delete item ${index + 1}`}
+              onClick={() => onChange(items.filter((_, i) => i !== index))}
+            >
+              <Trash2 className="size-4" />
+            </Button>
+          </div>
+        ))}
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          className="self-start"
+          onClick={() => onChange([...items, ""])}
+        >
+          <Plus className="size-4" />
+          Add item
+        </Button>
+      </div>
     </Field>
   );
 }

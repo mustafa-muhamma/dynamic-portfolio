@@ -1349,13 +1349,13 @@ export function SiteSettingsForm({
       />
       <ListField
         label="Navigation labels"
-        hint="One per line, format: key = Label (e.g. about = About Me)"
+        hint="One per row, format: key = Label (e.g. about = About Me)"
         value={recordToLines(navigationLabels)}
         onChange={(lines) => setValue("navigationLabels", lines as never)}
       />
       <ListField
         label="Section visibility"
-        hint="One per line, format: key = Label = true|false (e.g. skills = Skills = true)"
+        hint="One per row, format: key = Label = true|false (e.g. skills = Skills = true)"
         value={sectionsToLines(sectionVisibility)}
         onChange={(lines) => setValue("sectionVisibility", lines as never)}
       />
