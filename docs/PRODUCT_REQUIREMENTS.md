@@ -278,6 +278,7 @@ All entities are dashboard-managed. Reference relationships between entities (e.
 **Resolved (2026-08-09):**
 
 - ~~Final backend hosting provider: Railway or Render?~~ → **Resolved:** backend deployed on Vercel (serverless) alongside the frontend; see AD-06/AD-19 in MASTER_PLAN.
+- ~~How are inquiries delivered — email service, dashboard inbox, or both?~~ → **Resolved:** dashboard inbox (existing) **plus** email notifications to the owner via Resend when a new inquiry arrives; see AD-22 in MASTER_PLAN.
 
 ---
 

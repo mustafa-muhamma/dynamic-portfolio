@@ -988,3 +988,129 @@
 - Continue M5: run the hardening/security pass and finish the polish pass.
 
 ---
+
+## Session 17 — 2026-08-09
+
+- **Session Duration:** Dashboard UX refinement pass — row-based list editors + toast notifications.
+- **Session Number:** 17
+- **Phase:** 1 — Foundations (M5 — Hardening & Launch / dashboard UX polish)
+
+### Completed Work
+
+- Converted the dashboard's one-item-per-line textareas (`ListField`) into a **row-based list editor**: each item is its own editable input row with a delete button and an "Add item" button; empty rows are filtered on change and newly added rows auto-focus. This upgraded Experience bullets, Project technologies, Service deliverables, Pricing features, and both Settings lists (navigation labels + section visibility) in one shot (`client/src/components/admin/fields.tsx`; Settings hints updated in `client/src/components/admin/forms.tsx`). Contact `availability` intentionally stays a single free-text field (owner decision).
+- Added a **toast system** for the dashboard using `sonner` (user-approved dependency, AD-21):
+  - `client/src/components/ui/toaster.tsx` — sonner `<Toaster>` wrapper (top-right, light theme, close button, rich colors), mounted in the root layout so toasts survive the login → `/admin` redirect.
+  - `client/src/lib/toast.ts` — shared `getErrorMessage()` and `toastError()` helpers; 401s are skipped (the session-expiry redirect already communicates that state).
+  - Error toasts centralized in every TanStack Query mutation hook in `client/src/hooks/use-content.ts` (create/update/delete, upsert singleton, mark-inquiry-read, delete-inquiry) — every failed operation surfaces the API's message automatically.
+  - Success toasts at call sites with precise copy: `Created/Updated "label"`, `Deleted "label"`, `Published`/`Unpublished`, `<title> saved`, `Marked as read/unread`, `Inquiry deleted`, `Resume uploaded`, image/file upload results (single + batch), `Welcome back` on login, `Signed out` on logout.
+  - The CRUD dialog now stays open when a save fails (previously it could close); deletes keep their confirm; error copy comes straight from the API error body.
+- Verified: client `tsc`, ESLint, and `next build` pass clean.
+
+### Problems Found
+
+- (none)
+
+### Solutions
+
+- (none)
+
+### Architecture Decisions
+
+- AD-21: Dashboard status feedback uses sonner toasts mounted at the root layout, with errors centralized in the mutation hooks and successes fired at call sites.
+
+### Commits Created
+
+- `feat(admin): convert one-per-line list fields into editable row list` (`6605b66`)
+- Pending: `build(client): add sonner dependency for toast notifications`
+- Pending: `feat(admin): show toast notifications for all dashboard operations`
+- Pending: `docs(plan): record row-based list editors and toast system`
+
+### Files Added
+
+- `client/src/components/ui/toaster.tsx`, `client/src/lib/toast.ts`
+
+### Files Modified
+
+- `client/package.json` + `client/package-lock.json` (sonner)
+- `client/src/app/layout.tsx` (Toaster mount)
+- `client/src/hooks/use-content.ts` (error toasts on all mutations)
+- `client/src/components/admin/fields.tsx`, `client/src/components/admin/forms.tsx`, `client/src/components/admin/collection-manager.tsx`, `client/src/components/admin/singleton-manager.tsx`, `client/src/components/admin/file-picker.tsx`, `client/src/components/admin/admin-nav.tsx`
+- `client/src/app/(admin)/admin/inquiries/page.tsx`
+- `client/src/components/login-form.tsx`
+- `docs/MASTER_PLAN.md` (AD-21, M5 checklist, next session plan), `docs/DAILY_LOG.md` (this entry)
+
+### Remaining Tasks
+
+- Continue the dashboard UX refinement pass with the owner's next issues.
+- Finish the responsive/accessibility/perf polish pass (deferred from M4).
+- Security review, tests, and performance pass against the live site.
+
+### Tomorrow's Goal
+
+- Continue M5: next UX issues + hardening/security pass.
+
+---
+
+## Session 18 — 2026-08-09
+
+- **Session Duration:** Inquiry email notifications (Resend) + instant dashboard alerts.
+- **Session Number:** 18
+- **Phase:** 1 — Foundations (M5 — Hardening & Launch / inquiry delivery)
+
+### Completed Work
+
+- **Server — env:** added optional `EMAIL_API_KEY`, `EMAIL_FROM`, `INQUIRY_NOTIFY_EMAIL` to `server/src/config/env.ts` (zod) and documented them in `server/.env.example`.
+- **Server — email service (`server/src/services/email.ts`):** `sendInquiryNotification()` POSTs to `https://api.resend.com/emails` using the native `fetch` — **no SDK dependency** — with an 8s abort timeout, a 60s per-sender+message dedupe map, and failures logged not thrown. Includes `emailConfigured()`, HTML-escaping helpers, and a **styled HTML body** (inline styles; message card with a name/email table and a "View in dashboard" link to `CLIENT_URL/admin/inquiries`) alongside a plain-text fallback.
+- **Server — controller:** `createInquiry` calls the service fire-and-forget after storing the inquiry (`void sendInquiryNotification(...)`), so the 201 response is never blocked. Recipient = contact-settings email → `INQUIRY_NOTIFY_EMAIL`; skipped when unconfigured or no recipient.
+- **Server — tests:** new `server/tests/email.test.ts` (posts to Resend, asserts the HTML body + auth header, dedupe-window skip, swallowed provider failures) and `tests/api.test.ts` mocks the service and asserts the notification call with the contact-settings recipient. Suite now **48 tests**, all passing.
+- **Client — polling:** `useInquiries` now polls every **15s** and **refetches on window focus** (overriding the global `refetchOnWindowFocus: false`), so returning to the dashboard tab refreshes immediately instead of requiring a manual refresh.
+- **Client — nav:** unread-count badge on the Inquiries nav item (desktop sidebar + mobile drawer).
+- **Client — alert:** `client/src/components/admin/inquiry-alert.tsx` mounted in the admin layout watches the shared inquiries query and fires a sonner **"New inquiry"** toast (name + message preview + "View" action → `/admin/inquiries`) for unread inquiries not seen this session (sessionStorage dedupe).
+- Verified: server typecheck/lint + 48 tests pass; client `tsc`, ESLint, and `next build` pass clean (remaining lint warnings are the pre-existing `<img>` notices).
+- Docs: PRD §17 inquiry-delivery question resolved, AD-22 recorded, this entry appended.
+
+### Problems Found
+
+- New inquiries only appeared after a manual refresh. Root cause: `client/src/lib/providers.tsx` sets `refetchOnWindowFocus: false` globally, so switching back to the dashboard tab never triggered a fetch and the 30s poll was the only refresh path. Fixed per-query with `refetchOnWindowFocus: true` + a 15s poll.
+- The email unit test's first pass reused the same sender+message (dedupe key) across tests; the module-level dedupe map persisted, so the "skips duplicates" test observed 0 fetches. Fixed by giving each test a distinct message key.
+- The email-service env mock initially omitted `CLIENT_URL`, so the HTML "View in dashboard" link would render `undefined/admin/inquiries` under test; added it to the mock and asserted the link in the HTML body.
+
+### Solutions
+
+- Overrode `refetchOnWindowFocus` on the inquiries query and tightened the poll interval for near-instant alerts.
+- Scoped the email tests to distinct dedupe keys and included `CLIENT_URL` in the env mock so the HTML body is asserted end-to-end.
+
+### Architecture Decisions
+
+- AD-22: Inquiry notifications email the owner via Resend (native `fetch`, no SDK; fire-and-forget; 8s timeout; 60s dedupe; contact-settings email recipient with `INQUIRY_NOTIFY_EMAIL` fallback; disabled until `EMAIL_API_KEY`/`EMAIL_FROM` are set) plus instant dashboard alerts (15s poll + window-focus refetch, unread badge, sonner "New inquiry" toast deduped per session).
+
+### Commits Created
+
+- `feat(server): email inquiry notifications via Resend`
+- `feat(admin): poll inquiries and alert on new messages`
+- Pending: `docs(log): record email notifications and instant dashboard alerts`
+
+### Files Added
+
+- `server/src/services/email.ts`
+- `server/tests/email.test.ts`
+- `client/src/components/admin/inquiry-alert.tsx`
+
+### Files Modified
+
+- `server/src/config/env.ts`, `server/src/controllers/inquiry.controller.ts`, `server/.env.example`, `server/tests/api.test.ts`
+- `client/src/hooks/use-content.ts` (polling + focus refetch), `client/src/components/admin/admin-nav.tsx` (unread badge), `client/src/app/(admin)/layout.tsx` (alert mount)
+- `docs/PRODUCT_REQUIREMENTS.md` (§17 inquiry delivery resolved), `docs/MASTER_PLAN.md` (AD-22, M5 checklist, backlog), `docs/DAILY_LOG.md` (this entry)
+
+### Remaining Tasks
+
+- Enable the production sender: verify a custom domain in Resend, set `EMAIL_FROM` to it, and set `EMAIL_API_KEY`/`INQUIRY_NOTIFY_EMAIL` on the Vercel server env.
+- Finish the responsive/accessibility/perf polish pass (deferred from M4).
+- Security review, tests, and performance pass against the live site.
+- Delete the test inquiry from the production dashboard inbox.
+
+### Tomorrow's Goal
+
+- Continue M5: enable the production email sender and run the remaining hardening/polish pass.
+
+---
