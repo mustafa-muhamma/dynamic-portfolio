@@ -43,7 +43,7 @@ const KEY_META: Record<NavKey, { href: string; label: string }> = {
   about: SECTION_META.about,
   experience: SECTION_META.experience,
   skills: SECTION_META.skills,
-  work: { href: "#projects", label: "Work" },
+  work: { href: "#experience", label: "Work" },
   projects: { href: "#projects", label: "Projects" },
   services: SECTION_META.services,
   pricing: SECTION_META.pricing,
@@ -53,6 +53,31 @@ const KEY_META: Record<NavKey, { href: string; label: string }> = {
 };
 
 const NAV_PREFERRED: NavKey[] = ["home", "about", "work", "services", "contact"];
+
+const NAV_ORDER: Record<NavKey, number> = NAV_PREFERRED.reduce(
+  (acc, key, i) => ({ ...acc, [key]: i }),
+  {} as Record<NavKey, number>
+);
+
+const SECTION_NAV: Record<SectionKey | "top", NavKey> = {
+  top: "home",
+  about: "about",
+  experience: "work",
+  skills: "work",
+  projects: "work",
+  services: "services",
+  pricing: "services",
+  process: "services",
+  testimonials: "services",
+  contact: "contact"
+};
+
+const SPY_IDS: (SectionKey | "top")[] = ["top", ...SECTION_ORDER];
+
+export const NAV_SPY: { id: SectionKey | "top"; key: NavKey }[] = SPY_IDS.map((id) => ({
+  id,
+  key: SECTION_NAV[id]
+}));
 
 export type NavItem = { key: string; href: string; label: string };
 
@@ -65,7 +90,12 @@ export function getNavItems(navigationLabels?: Record<string, string> | null): N
         key,
         href: KEY_META[key as NavKey].href,
         label: label.trim() || KEY_META[key as NavKey].label
-      }));
+      }))
+      .sort(
+        (a, b) =>
+          (NAV_ORDER[a.key as NavKey] ?? NAV_PREFERRED.length) -
+          (NAV_ORDER[b.key as NavKey] ?? NAV_PREFERRED.length)
+      );
     if (known.length > 0) return known;
   }
   return NAV_PREFERRED.filter((key) => key in KEY_META).map((key) => ({

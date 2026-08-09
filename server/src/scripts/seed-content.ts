@@ -398,9 +398,9 @@ async function seedContent(): Promise<void> {
       tagline: "Junior Software Developer",
       navigationLabels: {
         home: "Home",
+        about: "About",
         work: "Work",
         services: "Services",
-        about: "About",
         contact: "Contact"
       },
       sectionVisibility: [

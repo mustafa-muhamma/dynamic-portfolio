@@ -6,7 +6,7 @@ import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 
 import { cn } from "@/lib/utils";
-import { getNavItems } from "@/lib/sections";
+import { getNavItems, NAV_SPY } from "@/lib/sections";
 import { useProfile, useSiteSettings } from "@/hooks/use-public";
 import { useTheme } from "@/lib/theme";
 
@@ -54,21 +54,19 @@ export function Nav() {
   });
 
   useEffect(() => {
-    const ids = navItems.map((item) => item.href.slice(1)).filter((id) => id && id !== "top");
-    if (ids.length === 0) return;
     const onScroll = () => {
       const probe = window.scrollY + window.innerHeight * 0.4;
       let current = "";
-      for (const id of ids) {
+      for (const { id, key } of NAV_SPY) {
         const el = document.getElementById(id);
-        if (el && el.offsetTop <= probe) current = id;
+        if (el && el.offsetTop <= probe) current = key;
       }
       setActive(current);
     };
     onScroll();
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
-  }, [navItems]);
+  }, []);
 
   const brand = profile?.name ?? siteSettings?.siteName ?? "";
 
@@ -102,7 +100,7 @@ export function Nav() {
 
         <div className="hidden items-center gap-1 md:flex">
           {navItems.map((item) => {
-            const isActive = active === item.href.slice(1);
+            const isActive = active === item.key;
             return (
               <Link
                 key={item.key}
