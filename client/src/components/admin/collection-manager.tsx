@@ -2,6 +2,7 @@
 
 import { MoreHorizontal, Pencil, Plus, Search, Trash2 } from "lucide-react";
 import { useState, type ReactNode } from "react";
+import { toast } from "sonner";
 
 import {
   Dialog,
@@ -92,26 +93,35 @@ export function CollectionManager<K extends ContentResource>({
   }
 
   async function handleSubmit(values: CreateDoc<CollectionDoc[K]>) {
-    if (editing) {
-      await updateItem.mutateAsync({ id: editing.id, data: values });
-    } else {
-      await createItem.mutateAsync(values);
+    try {
+      if (editing) {
+        const updated = await updateItem.mutateAsync({ id: editing.id, data: values });
+        toast.success(`Updated "${getLabel(updated)}"`);
+      } else {
+        const created = await createItem.mutateAsync(values);
+        toast.success(`Created "${getLabel(created)}"`);
+      }
+      setOpen(false);
+    } catch {
+      // error toast is handled centrally by the mutation hook
     }
-    setOpen(false);
   }
 
   function handleDelete(row: CollectionDoc[K]) {
     if (window.confirm(`Delete "${getLabel(row)}"? This cannot be undone.`)) {
-      deleteItem.mutate(row.id);
+      void deleteItem.mutateAsync(row.id).then(() => toast.success(`Deleted "${getLabel(row)}"`));
     }
   }
 
   function togglePublish(row: CollectionDoc[K]) {
     const published = (row as unknown as { published?: boolean }).published;
-    updateItem.mutate({
-      id: row.id,
-      data: { published: !published } as unknown as UpdateDoc<CollectionDoc[K]>
-    });
+    updateItem.mutate(
+      {
+        id: row.id,
+        data: { published: !published } as unknown as UpdateDoc<CollectionDoc[K]>
+      },
+      { onSuccess: () => toast.success(published ? "Unpublished" : "Published") }
+    );
   }
 
   return (

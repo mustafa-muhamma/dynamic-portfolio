@@ -1,6 +1,7 @@
 "use client";
 
 import { Clock, Mail, MailOpen, Trash2 } from "lucide-react";
+import { toast } from "sonner";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -89,12 +90,15 @@ export default function InquiriesPage() {
   const unreadCount = inquiries.filter((i) => !i.read).length;
 
   function toggleRead(inquiry: Inquiry) {
-    markRead.mutate({ id: inquiry.id, read: !inquiry.read });
+    markRead.mutate(
+      { id: inquiry.id, read: !inquiry.read },
+      { onSuccess: () => toast.success(inquiry.read ? "Marked as unread" : "Marked as read") }
+    );
   }
 
   function handleDelete(inquiry: Inquiry) {
     if (window.confirm(`Delete inquiry from ${inquiry.name}? This cannot be undone.`)) {
-      deleteInquiry.mutate(inquiry.id);
+      deleteInquiry.mutate(inquiry.id, { onSuccess: () => toast.success("Inquiry deleted") });
     }
   }
 

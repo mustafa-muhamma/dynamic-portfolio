@@ -3,6 +3,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import { adminApi, ApiError } from "@/lib/admin-api";
+import { toastError } from "@/lib/toast";
 import {
   COLLECTIONS,
   INQUIRIES,
@@ -35,7 +36,8 @@ export function useCreateItem<K extends ContentResource>(resource: K) {
   return useMutation({
     mutationFn: (data: CreateDoc<CollectionDoc[K]>) =>
       adminApi.create<CollectionDoc[K]>(COLLECTIONS[resource], data),
-    onSuccess: invalidate
+    onSuccess: invalidate,
+    onError: (err) => toastError(err, "Failed to create")
   });
 }
 
@@ -44,7 +46,8 @@ export function useUpdateItem<K extends ContentResource>(resource: K) {
   return useMutation({
     mutationFn: ({ id, data }: { id: string; data: UpdateDoc<CollectionDoc[K]> }) =>
       adminApi.update<CollectionDoc[K]>(COLLECTIONS[resource], id, data),
-    onSuccess: invalidate
+    onSuccess: invalidate,
+    onError: (err) => toastError(err, "Failed to update")
   });
 }
 
@@ -53,7 +56,8 @@ export function useDeleteItem(resource: ContentResource) {
   return useMutation({
     mutationFn: (id: string) =>
       adminApi.remove<{ id: string; deleted: boolean }>(COLLECTIONS[resource], id),
-    onSuccess: invalidate
+    onSuccess: invalidate,
+    onError: (err) => toastError(err, "Failed to delete")
   });
 }
 
@@ -77,7 +81,8 @@ export function useUpsertSingleton<K extends SingletonResource>(resource: K) {
   return useMutation({
     mutationFn: (data: CreateDoc<SingletonDoc[K]>) =>
       adminApi.upsert<SingletonDoc[K]>(SINGLETONS[resource], data),
-    onSuccess: invalidate
+    onSuccess: invalidate,
+    onError: (err) => toastError(err, "Failed to save")
   });
 }
 
@@ -93,7 +98,8 @@ export function useMarkInquiryRead() {
   return useMutation({
     mutationFn: ({ id, read }: { id: string; read: boolean }) =>
       adminApi.update<Inquiry>(INQUIRIES, id, { read }),
-    onSuccess: invalidate
+    onSuccess: invalidate,
+    onError: (err) => toastError(err, "Failed to update inquiry")
   });
 }
 
@@ -101,6 +107,7 @@ export function useDeleteInquiry() {
   const invalidate = useInvalidate(INQUIRIES);
   return useMutation({
     mutationFn: (id: string) => adminApi.remove<{ id: string; deleted: boolean }>(INQUIRIES, id),
-    onSuccess: invalidate
+    onSuccess: invalidate,
+    onError: (err) => toastError(err, "Failed to delete inquiry")
   });
 }

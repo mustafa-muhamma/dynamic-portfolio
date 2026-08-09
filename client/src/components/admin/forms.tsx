@@ -7,6 +7,7 @@ import type { FormEventHandler, ReactNode } from "react";
 import { useRef, useState } from "react";
 import { useForm, useWatch } from "react-hook-form";
 import { z } from "zod";
+import { toast } from "sonner";
 import Link from "next/link";
 
 import {
@@ -212,9 +213,12 @@ export function ResumeForm({ defaultValues }: ResourceFormProps<Resume>) {
     try {
       await uploadResumeFile(file);
       setSuccess(true);
+      toast.success("Resume uploaded");
       queryClient.invalidateQueries({ queryKey: ["resume"] });
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Upload failed");
+      const message = err instanceof Error ? err.message : "Upload failed";
+      setError(message);
+      toast.error(message);
     } finally {
       setUploading(false);
       if (inputRef.current) inputRef.current.value = "";

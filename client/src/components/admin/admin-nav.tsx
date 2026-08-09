@@ -24,6 +24,7 @@ import {
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useState } from "react";
+import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -74,7 +75,12 @@ function LogoutButton() {
   const router = useRouter();
 
   async function logout() {
-    await fetch("/api/auth/logout", { method: "POST" });
+    try {
+      await fetch("/api/auth/logout", { method: "POST" });
+      toast.success("Signed out");
+    } catch {
+      toast.error("Failed to sign out");
+    }
     router.push("/login");
     router.refresh();
   }

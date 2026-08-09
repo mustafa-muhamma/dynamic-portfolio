@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
+import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -37,13 +38,18 @@ export function LoginForm() {
       });
       const data = (await res.json()) as { error?: { message?: string } };
       if (!res.ok) {
-        setError(data.error?.message ?? "Login failed");
+        const message = data.error?.message ?? "Login failed";
+        setError(message);
+        toast.error(message);
         return;
       }
+      toast.success("Welcome back");
       router.push("/admin");
       router.refresh();
     } catch {
-      setError("Something went wrong. Please try again.");
+      const message = "Something went wrong. Please try again.";
+      setError(message);
+      toast.error(message);
     }
   }
 

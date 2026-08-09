@@ -1,5 +1,7 @@
 "use client";
 
+import { toast } from "sonner";
+
 import { Skeleton } from "@/components/ui/skeleton";
 import { useSingleton, useUpsertSingleton } from "@/hooks/use-content";
 import type { CreateDoc, SingletonDoc, SingletonResource } from "@/lib/content";
@@ -48,7 +50,9 @@ export function SingletonManager<K extends SingletonResource>({
         isEdit={!!singleton.data}
         submitting={upsert.isPending}
         defaultValues={singleton.data ? omitId(singleton.data) : undefined}
-        onSubmit={(values) => upsert.mutate(values)}
+        onSubmit={(values) =>
+          upsert.mutate(values, { onSuccess: () => toast.success(`${title} saved`) })
+        }
       />
     </div>
   );

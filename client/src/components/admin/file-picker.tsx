@@ -3,6 +3,7 @@
 
 import { useEffect, useId, useRef, useState } from "react";
 import { FileText, Link2, Loader2, Upload, X } from "lucide-react";
+import { toast } from "sonner";
 
 import { ImageCropModal } from "@/components/admin/image-crop-modal";
 import { Button } from "@/components/ui/button";
@@ -68,8 +69,11 @@ export function FilePicker({
       const asset = await uploadFile(file, kind);
       onChange(asset.url);
       onUploaded?.(asset, file);
+      toast.success(kind === "document" ? "File uploaded" : "Image uploaded");
     } catch (err) {
-      setUploadError(err instanceof Error ? err.message : "Upload failed");
+      const message = err instanceof Error ? err.message : "Upload failed";
+      setUploadError(message);
+      toast.error(message);
     } finally {
       setUploading(false);
       if (inputRef.current) inputRef.current.value = "";
@@ -82,6 +86,7 @@ export function FilePicker({
     const validation = validateFile(file, kind);
     if (validation) {
       setUploadError(validation);
+      toast.error(validation);
       if (inputRef.current) inputRef.current.value = "";
       return;
     }
@@ -223,17 +228,23 @@ export function ImageListPicker({ label, value, onChange, error, hint }: ImageLi
       const validation = validateFile(file, "image");
       if (validation) {
         setUploadError(validation);
+        toast.error(validation);
         continue;
       }
       try {
         const asset = await uploadFile(file, "image");
         added.push(asset.url);
       } catch (err) {
-        setUploadError(err instanceof Error ? err.message : "Upload failed");
+        const message = err instanceof Error ? err.message : "Upload failed";
+        setUploadError(message);
+        toast.error(message);
         break;
       }
     }
-    if (added.length) onChange([...urls, ...added]);
+    if (added.length) {
+      onChange([...urls, ...added]);
+      toast.success(added.length === 1 ? "Image added" : `${added.length} images added`);
+    }
     setUploading(false);
     if (inputRef.current) inputRef.current.value = "";
   }
