@@ -27,6 +27,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
+import { useInquiries } from "@/hooks/use-content";
 import { cn } from "@/lib/utils";
 
 type NavItem = {
@@ -95,6 +96,8 @@ function LogoutButton() {
 
 function NavLinks({ onNavigate }: { onNavigate?: () => void }) {
   const pathname = usePathname();
+  const inquiries = useInquiries();
+  const unreadCount = inquiries.data?.filter((i) => !i.read).length ?? 0;
 
   return (
     <nav className="flex-1 space-y-5 overflow-y-auto px-2 pb-4">
@@ -117,6 +120,11 @@ function NavLinks({ onNavigate }: { onNavigate?: () => void }) {
                 >
                   <Icon className="size-4" />
                   {item.label}
+                  {item.href === "/admin/inquiries" && unreadCount > 0 && (
+                    <span className="ml-auto rounded-full bg-primary px-1.5 text-xs font-semibold leading-4 text-primary-foreground">
+                      {unreadCount}
+                    </span>
+                  )}
                 </Link>
               );
             })}

@@ -89,7 +89,9 @@ export function useUpsertSingleton<K extends SingletonResource>(resource: K) {
 export function useInquiries() {
   return useQuery({
     queryKey: queryKey(INQUIRIES),
-    queryFn: () => adminApi.list<Inquiry>(INQUIRIES)
+    queryFn: () => adminApi.list<Inquiry>(INQUIRIES),
+    refetchInterval: 15_000,
+    refetchOnWindowFocus: true
   });
 }
 

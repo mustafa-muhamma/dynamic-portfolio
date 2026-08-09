@@ -1,6 +1,7 @@
 import Link from "next/link";
 
 import { AdminNav, MobileNav } from "@/components/admin/admin-nav";
+import { InquiryAlert } from "@/components/admin/inquiry-alert";
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -18,6 +19,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         </header>
         <main className="flex-1 px-4 py-6 md:px-6">{children}</main>
       </div>
+      <InquiryAlert />
     </div>
   );
 }
