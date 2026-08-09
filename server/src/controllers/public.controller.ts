@@ -40,6 +40,69 @@ function singleController(model: LeanModel, label: string) {
   };
 }
 
+async function singleForBundle(model: LeanModel): Promise<unknown | null> {
+  const doc = (await model.findOne().lean()) as { _id: unknown } | null;
+  return doc ? toApiDoc(doc) : null;
+}
+
+async function listForBundle(model: LeanModel): Promise<unknown[]> {
+  const docs = (await model.find({ published: true }).sort({ order: 1 }).lean()) as Array<{
+    _id: unknown;
+  }>;
+  return docs.map((doc) => toApiDoc(doc));
+}
+
+export async function getPublicBundle(_req: Request, res: Response): Promise<void> {
+  const [
+    profile,
+    hero,
+    resume,
+    contactSettings,
+    siteSettings,
+    socialLinks,
+    experience,
+    education,
+    skills,
+    projects,
+    services,
+    pricing,
+    process,
+    testimonials
+  ] = await Promise.all([
+    singleForBundle(ProfileModel),
+    singleForBundle(HeroModel),
+    singleForBundle(ResumeModel),
+    singleForBundle(ContactSettingsModel),
+    singleForBundle(SiteSettingsModel),
+    listForBundle(SocialLinkModel),
+    listForBundle(ExperienceModel),
+    listForBundle(EducationModel),
+    listForBundle(SkillModel),
+    listForBundle(ProjectModel),
+    listForBundle(ServiceModel),
+    listForBundle(PricingModel),
+    listForBundle(ProcessModel),
+    listForBundle(TestimonialModel)
+  ]);
+
+  res.json({
+    profile,
+    hero,
+    resume,
+    contactSettings,
+    siteSettings,
+    socialLinks,
+    experience,
+    education,
+    skills,
+    projects,
+    services,
+    pricing,
+    process,
+    testimonials
+  });
+}
+
 export async function getProjectBySlug(req: Request, res: Response): Promise<void> {
   const raw = req.params.slug;
   const slug = typeof raw === "string" ? raw.toLowerCase().trim() : "";

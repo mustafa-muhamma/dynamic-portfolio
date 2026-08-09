@@ -432,3 +432,18 @@ describe("resume upload and download", () => {
     expect(res.headers.location).toBe("https://example.com/cv.pdf");
   });
 });
+
+describe("public bundle", () => {
+  it("returns all public content in a single response", async () => {
+    const res = await request(app).get("/api/v1/bundle").expect(200);
+    expect(res.body.profile.name).toBe("Updated Name");
+    expect(res.body.hero.heading).toBe("Welcome");
+    expect(res.body.resume).not.toBeNull();
+    expect(res.body.resume.data).toBeUndefined();
+    expect(res.body.skills).toHaveLength(2);
+    expect(res.body.skills[0].name).toBe("React");
+    expect(res.body.projects).toHaveLength(1);
+    expect(res.body.services).toEqual([]);
+    expect(res.body.contactSettings.email).toBe("test@example.com");
+  });
+});

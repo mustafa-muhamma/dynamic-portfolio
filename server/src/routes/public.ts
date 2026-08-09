@@ -7,6 +7,7 @@ import {
   getHero,
   getProfile,
   getProjectBySlug,
+  getPublicBundle,
   getResume,
   getSiteSettings,
   listEducation,
@@ -22,6 +23,7 @@ import {
 
 const router = Router();
 
+router.get("/bundle", getPublicBundle);
 router.get("/social-links", listSocialLinks);
 router.get("/experience", listExperience);
 router.get("/education", listEducation);
