@@ -5,20 +5,26 @@ import { cloudinaryConfigured, verifyCloudinary } from "../services/cloudinary.j
 import { ensureAdmin } from "./adminSeed.js";
 import { logger } from "./logger.js";
 
+const CONNECT_TIMEOUT_MS = 5_000;
+const SERVER_SELECTION_TIMEOUT_MS = 5_000;
+
 let bootstrapPromise: Promise<void> | undefined;
 
 export function bootstrap(): Promise<void> {
   bootstrapPromise ??= (async () => {
     await connectDatabase();
-    await seedAdmin();
-    await verifyMediaStorage();
+    void seedAdmin();
+    void verifyMediaStorage();
   })();
   return bootstrapPromise;
 }
 
 async function connectDatabase(): Promise<void> {
   try {
-    await mongoose.connect(env.MONGODB_URI);
+    await mongoose.connect(env.MONGODB_URI, {
+      serverSelectionTimeoutMS: SERVER_SELECTION_TIMEOUT_MS,
+      connectTimeoutMS: CONNECT_TIMEOUT_MS
+    });
     logger.info("[database] connected");
   } catch (error) {
     logger.error({ err: error }, "[database] connection failed");
