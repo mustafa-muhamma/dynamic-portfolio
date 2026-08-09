@@ -1,5 +1,5 @@
 import request from "supertest";
-import { afterAll, beforeAll, describe, expect, it } from "vitest";
+import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 
 import { createApp } from "../src/createApp.js";
 import { ContactSettingsModel } from "../src/models/contactSettings.model.js";
@@ -7,7 +7,12 @@ import { ProfileModel } from "../src/models/profile.model.js";
 import { ProjectModel } from "../src/models/project.model.js";
 import { ResumeModel } from "../src/models/resume.model.js";
 import { SkillModel } from "../src/models/skill.model.js";
+import { sendInquiryNotification } from "../src/services/email.js";
 import { connectTestDb, disconnectTestDb, testAdmin } from "./helpers.js";
+
+vi.mock("../src/services/email.js", () => ({
+  sendInquiryNotification: vi.fn().mockResolvedValue(undefined)
+}));
 
 const app = createApp();
 
@@ -85,6 +90,21 @@ describe("POST /inquiries", () => {
       .expect(201);
     expect(res.body.name).toBe("Jane");
     expect(res.body.email).toBe("jane@example.com");
+  });
+
+  it("queues a notification email to the contact-settings recipient", async () => {
+    await request(app)
+      .post("/api/v1/inquiries")
+      .send({ name: "Bob", email: "bob@example.com", message: "Hi there" })
+      .expect(201);
+    expect(sendInquiryNotification).toHaveBeenCalledWith(
+      expect.objectContaining({
+        recipient: "test@example.com",
+        name: "Bob",
+        email: "bob@example.com",
+        message: "Hi there"
+      })
+    );
   });
 
   it("rejects invalid payloads", async () => {

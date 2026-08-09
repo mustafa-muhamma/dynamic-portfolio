@@ -2,9 +2,11 @@ import type { Request, Response } from "express";
 import mongoose from "mongoose";
 import { z } from "zod";
 
+import { env } from "../config/env.js";
 import { toApiDoc } from "../lib/serialize.js";
 import { ContactSettingsModel } from "../models/contactSettings.model.js";
 import { InquiryModel } from "../models/inquiry.model.js";
+import { sendInquiryNotification } from "../services/email.js";
 import { createInquirySchema } from "../validation/inquiry.js";
 
 const markInquiryReadSchema = z.object({ read: z.boolean() });
@@ -31,7 +33,17 @@ export async function createInquiry(req: Request, res: Response): Promise<void> 
   }
 
   const inquiry = await InquiryModel.create(parsed.data);
-  res.status(201).json(toApiDoc(inquiry.toObject()));
+  const doc = toApiDoc(inquiry.toObject());
+
+  void sendInquiryNotification({
+    recipient: settings?.email?.trim() || env.INQUIRY_NOTIFY_EMAIL,
+    id: doc.id,
+    name: doc.name,
+    email: doc.email,
+    message: doc.message
+  });
+
+  res.status(201).json(doc);
 }
 
 export async function listInquiries(_req: Request, res: Response): Promise<void> {
