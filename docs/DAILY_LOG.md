@@ -1114,3 +1114,57 @@
 - Continue M5: enable the production email sender and run the remaining hardening/polish pass.
 
 ---
+
+## Session 19 — 2026-08-10
+
+- **Session Duration:** Cold-start rendering fix — Next.js caching + revalidation + home-page hydration.
+- **Session Number:** 19
+- **Phase:** 1 — Foundations (M5 — Hardening & Launch)
+
+### Completed Work
+
+- Measured the live cold-start problem on the deployed site: a cold `GET /api/public/bundle` took **11.2s** (over Vercel's 10s default), a follow-up "warm" probe still took **4.2s** (a second cold instance); the page HTML itself loads in ~370ms, so visitors stared at an empty portfolio for the whole bundle wait. Vercel Hobby crons run at most once/day, ruling out warm-up crons as a fix.
+- **A — Cache public reads at the Next layer** (`client/src/app/api/public/[...path]/route.ts`): GETs now use `cache: "force-cache"` + `next: { revalidate: 60, tags: ["public"] }` so every bundle/project-detail read is served from Vercel's shared Data Cache instead of cold Express; POSTs (inquiries) stay `no-store`.
+- **B — Purge on dashboard writes** (`client/src/app/api/admin/[...path]/route.ts`): after every successful (2xx) create/update/delete/publish, call `revalidateTag("public", { expire: 0 })`. Next 16 deprecates the single-argument form; `{ expire: 0 }` gives blocking revalidation so the owner sees edits on the very next visit — no stale portfolio.
+- **C — Hydrate the home page** (`client/src/app/(public)/page.tsx`): converted to an ISR server component (`export const revalidate = 60`) that prefetches the bundle via `getPublicBundleCached()` (`client/src/lib/public-api-server.ts`, same upstream URL + tags as the proxy, `AbortSignal.timeout(15s)`, `retry: 1`) into a TanStack QueryClient and wraps the sections in `<HydrationBoundary>`. The bundle data ships inside the page HTML, so content renders immediately after client hydration without waiting on the API; the client's background refetch (`staleTime: 0` + focus refetch) now hits the cached proxy.
+- Verified: client `tsc` and ESLint clean (only the pre-existing `<img>` warnings); `next build` passes and the route table shows `/` as static with **1m revalidate**; local smoke test with the API + MongoDB running — the home page serves 200 and the HTML contains the bundle content ("Mustafa", projects, skills), and the bundle endpoint returns all real content.
+- Docs: AD-23 recorded, M5 checklist item added, current day/progress updated, this entry appended.
+
+### Problems Found
+
+- `revalidateTag(tag)` (single argument) is **deprecated in Next 16** — the revalidate docs require the second argument; `{ expire: 0 }` gives the immediate-expiration semantics we need (the `'max'` profile is stale-while-revalidate, which would serve stale content on the first visit after an edit).
+- TS rejected `tags: ["public"] as const` because Next's extended `fetch` types want a mutable `string[]`; removed the `as const`.
+- `prefetchQuery` swallows errors (`.catch(noop)` in the installed query-core), so failure can't be detected by try/catch; the page checks `getQueryState(["public","bundle"])` and only dehydrates when `status === "success"`, leaving the client to fetch on its own otherwise.
+- Confirmed via the installed source that `HydrationBoundary` hydrates in `useEffect` (client-side): the raw SSR HTML carries the dehydrated data payload, not the rendered section markup; the 1.6s preloader masks the hydration window.
+
+### Architecture Decisions
+
+- AD-23: Public reads are cached at the Next.js layer (60s TTL + `public` tag) and revalidated instantly on admin writes; the home page is ISR + TanStack hydration so the bundle data ships in the HTML. Warm-up crons were rejected (Hobby: once/day).
+
+### Commits Created
+
+- `perf(client): cache public API reads and revalidate on admin writes`
+- `feat(client): hydrate home page with server-fetched bundle`
+- Pending: `docs(plan): record cold-start caching and hydration solution`
+
+### Files Added
+
+- `client/src/lib/public-api-server.ts`
+
+### Files Modified
+
+- `client/src/app/api/public/[...path]/route.ts`, `client/src/app/api/admin/[...path]/route.ts`
+- `client/src/app/(public)/page.tsx`
+- `docs/MASTER_PLAN.md` (AD-23, M5 checklist, current day, next session plan), `docs/DAILY_LOG.md` (this entry)
+
+### Remaining Tasks
+
+- Deploy the client and re-verify the live cold page load (first paint with content, edit-in-dashboard → portfolio refresh shows the change).
+- Warm the site once after deploy to populate the Data Cache.
+- Finish the responsive/accessibility/perf polish pass (deferred from M4).
+- Security review, tests, and performance pass against the live site.
+- Delete the test inquiry from the production dashboard inbox.
+
+### Tomorrow's Goal
+
+- Deploy the caching/hydration changes and confirm the live cold page load is fast; continue the hardening/security pass.
