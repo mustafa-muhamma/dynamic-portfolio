@@ -1,8 +1,11 @@
+import { revalidateTag } from "next/cache";
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 
 import { API_URL } from "@/lib/config";
 import { getSessionToken } from "@/lib/session";
+
+const PUBLIC_CACHE_TAGS = ["public"];
 
 async function handle(request: NextRequest, ctx: RouteContext<"/api/admin/[...path]">) {
   const { path } = await ctx.params;
@@ -29,6 +32,11 @@ async function handle(request: NextRequest, ctx: RouteContext<"/api/admin/[...pa
   });
 
   const text = await upstream.text();
+
+  if (upstream.ok && ["POST", "PUT", "PATCH", "DELETE"].includes(request.method)) {
+    revalidateTag(PUBLIC_CACHE_TAGS[0], { expire: 0 });
+  }
+
   return new NextResponse(text, {
     status: upstream.status,
     headers: { "Content-Type": "application/json" }

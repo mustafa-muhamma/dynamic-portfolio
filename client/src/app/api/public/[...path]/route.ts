@@ -3,9 +3,13 @@ import { NextResponse } from "next/server";
 
 import { API_URL } from "@/lib/config";
 
+const PUBLIC_CACHE_REVALIDATE = 60;
+const PUBLIC_CACHE_TAGS = ["public"];
+
 async function handle(request: NextRequest, ctx: RouteContext<"/api/public/[...path]">) {
   const { path } = await ctx.params;
 
+  const isRead = request.method === "GET";
   const body = ["POST", "PUT", "PATCH", "DELETE"].includes(request.method)
     ? await request.text()
     : undefined;
@@ -14,7 +18,12 @@ async function handle(request: NextRequest, ctx: RouteContext<"/api/public/[...p
     method: request.method,
     headers: body ? { "Content-Type": "application/json" } : {},
     body,
-    cache: "no-store"
+    ...(isRead
+      ? {
+          cache: "force-cache",
+          next: { revalidate: PUBLIC_CACHE_REVALIDATE, tags: PUBLIC_CACHE_TAGS }
+        }
+      : { cache: "no-store" })
   });
 
   const text = await upstream.text();
