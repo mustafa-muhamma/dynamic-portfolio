@@ -1168,3 +1168,58 @@
 ### Tomorrow's Goal
 
 - Deploy the caching/hydration changes and confirm the live cold page load is fast; continue the hardening/security pass.
+
+---
+
+## Session 20 — 2026-08-14
+
+- **Session Duration:** Project gallery improvements (crop-on-upload, reorder, lightbox) + Cloudinary cleanup.
+- **Session Number:** 20
+- **Phase:** 1 — Foundations (M5 — Hardening & Launch)
+
+### Completed Work
+
+- **A — Crop on upload** (`client/src/components/admin/image-crop-modal.tsx`, `client/src/components/admin/file-picker.tsx`): `ImageCropModal` gained a `shape` prop (`"round"` | `"rect"`) with aspect-ratio previews; `ImageListPicker` now queues uploaded files through the crop modal. Projects crop to **16:10** (matches the public gallery box) and testimonial proof screenshots to **16:9**. Each entry is stored as `{ url, originalUrl }` — `url` is the crop shown in the gallery, `originalUrl` is the untouched upload used by the previews. Plain-string URLs remain supported and render identically (backward compatible; normalized via the new `client/src/lib/images.ts` helpers).
+- **B — Drag to order + admin preview** (`file-picker.tsx`): gallery tiles are reorderable with native HTML5 drag-and-drop (`GripVertical` handle, `moveImage(from, to)`); each tile has a hover expand button that opens a fixed full-image preview showing the original; the lightbox supports prev/next, arrow keys, and Escape.
+- **C — Public lightbox** (`client/src/app/(public)/projects/[slug]/page.tsx`): the project detail gallery now opens a full-size lightbox (original image, prev/next, counter, close via button/Escape/backdrop) and the main image has a hover expand affordance.
+- **D — Server media deletion** (`server/src/services/upload.ts`, `server/src/routes/media.ts`): new authenticated `DELETE /api/v1/media` (`{ urls }`) destroys Cloudinary assets best-effort and responds `{ deleted, skipped }`. `extractCloudinaryAsset(url)` parses `res.cloudinary.com/<cloud>/<type>/<delivery>/v<version>/<publicId>.<ext>` (validates cloud name when configured, image/raw resource types only, strips the version segment and extension); `deleteFile` now treats `"not found"` as success (idempotent deletes). Non-Cloudinary URLs are skipped safely.
+- **E — Delete-on-save, cancel-safe cleanup** (client): `client/src/app/api/media/route.ts` gained a `DELETE` proxy and `client/src/lib/media.ts` a `deleteMedia(urls)` helper. `CollectionManager` and `SingletonManager` accept a `getImages(row/doc)` prop and, after a **successful** save, delete the diff of previously-persisted image URLs (`mediaDiffRemoved`); deleting a row deletes all of its stored assets. `FilePicker` and `ImageListPicker` track session-uploaded URLs in a ref and delete **immediately** only images uploaded but then removed/replaced before saving (cancel-safe). Wired via `getImages` on the projects, testimonials (images + avatar), social-links, profile, and hero admin pages. The resume is exempt — it is stored as bytes in Mongo (AD-17).
+- Verified: server `tsc`/ESLint clean, **57 tests pass**, `npm run build` passes; client `tsc`/ESLint clean (only the pre-existing `<img>` warnings) and `next build` passes.
+- **FIX (found during owner testing):** saving a project/testimonial with gallery images returned a 500 — the Mongoose models still declared `images: { type: [String] }`, so `{ url, originalUrl }` objects failed to cast on save. Changed both models to `images: { type: [Schema.Types.Mixed] }` (shape is already enforced by Zod at the API boundary; plain-string URLs keep working). Added two regression tests — projects round-trip a string + object mix and testimonials round-trip an object — server suite now **59 tests pass**.
+
+### Architecture Decisions
+
+- AD-24: Gallery images are `{ url, originalUrl }` pairs (fixed-aspect crop + full original); Cloudinary cleanup is delete-on-save and cancel-safe via `DELETE /api/v1/media`, with immediate deletion only for freshly-uploaded-then-removed assets.
+
+### Commits Created
+
+- `feat(server): add DELETE media endpoint to destroy Cloudinary assets`
+- `feat(admin): crop gallery images on upload with drag ordering and preview`
+- `feat(public): show full images in a lightbox on project gallery`
+- `feat(admin): delete Cloudinary assets when images are removed or entities deleted`
+- Pending: `docs(plan): record gallery crop/reorder/lightbox and Cloudinary cleanup`
+
+### Files Added
+
+- `server/tests/cloudinary-url.test.ts`
+- `client/src/lib/images.ts`
+
+### Files Modified
+
+- `server/src/services/upload.ts`, `server/src/routes/media.ts`, `server/src/validation/recruiter.ts`, `server/src/validation/client.ts`, `server/src/models/project.model.ts`, `server/src/models/testimonial.model.ts`, `server/tests/api.test.ts`
+- `client/src/lib/content.ts`, `client/src/lib/media.ts`, `client/src/app/api/media/route.ts`
+- `client/src/components/admin/file-picker.tsx`, `image-crop-modal.tsx`, `forms.tsx`, `collection-manager.tsx`, `singleton-manager.tsx`
+- `client/src/app/(admin)/admin/{projects,testimonials,social-links,profile,hero}/page.tsx`
+- `client/src/components/public/projects.tsx`, `client/src/components/public/testimonials.tsx`, `client/src/app/(public)/projects/[slug]/page.tsx`
+- `docs/MASTER_PLAN.md` (AD-24, M5 checklist, last updated, next session plan), `docs/DAILY_LOG.md` (this entry)
+
+### Remaining Tasks
+
+- Deploy the client/server and verify on the live site: crop, reorder, full-image preview, remove images/delete entities, and confirm Cloudinary assets are destroyed.
+- Finish the responsive/accessibility/perf polish pass (deferred from M4).
+- Security review, tests, and performance pass against the live site.
+- Delete the test inquiry from the production dashboard inbox.
+
+### Tomorrow's Goal
+
+- Deploy the gallery/cleanup changes and verify Cloudinary cleanup end-to-end on the live site.
