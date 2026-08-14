@@ -12,6 +12,7 @@ export default function SocialLinksPage() {
       Form={SocialLinkForm}
       getLabel={(row) => row.platform}
       getSubtitle={(row) => row.url}
+      getImages={(row) => (row.iconUrl ? [row.iconUrl] : [])}
       searchText={(row) => `${row.platform} ${row.url}`}
     />
   );

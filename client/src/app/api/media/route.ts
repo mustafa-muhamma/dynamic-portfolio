@@ -30,3 +30,32 @@ export async function POST(request: NextRequest) {
     headers: { "Content-Type": "application/json" }
   });
 }
+
+export async function DELETE(request: NextRequest) {
+  const token = await getSessionToken();
+  if (!token) {
+    return NextResponse.json(
+      { error: { code: "UNAUTHORIZED", message: "Not authenticated" } },
+      { status: 401 }
+    );
+  }
+
+  const body = (await request.json().catch(() => undefined)) as { urls?: string[] } | undefined;
+  const urls = Array.isArray(body?.urls) ? body.urls : [];
+
+  const upstream = await fetch(`${API_URL}/media`, {
+    method: "DELETE",
+    headers: {
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({ urls }),
+    cache: "no-store"
+  });
+
+  const text = await upstream.text();
+  return new NextResponse(text, {
+    status: upstream.status,
+    headers: { "Content-Type": "application/json" }
+  });
+}

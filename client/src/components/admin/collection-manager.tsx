@@ -37,6 +37,8 @@ import {
   useUpdateItem
 } from "@/hooks/use-content";
 import type { CollectionDoc, ContentResource, CreateDoc, UpdateDoc } from "@/lib/content";
+import { mediaDiffRemoved } from "@/lib/images";
+import { deleteMedia } from "@/lib/media";
 
 export type ResourceFormProps<T extends { id: string }> = {
   defaultValues?: CreateDoc<T>;
@@ -55,6 +57,7 @@ type CollectionManagerProps<K extends ContentResource> = {
   getSubtitle?: (row: CollectionDoc[K]) => string;
   searchText?: (row: CollectionDoc[K]) => string;
   extraStatus?: (row: CollectionDoc[K]) => ReactNode;
+  getImages?: (row: CollectionDoc[K]) => string[];
 };
 
 export function CollectionManager<K extends ContentResource>({
@@ -65,7 +68,8 @@ export function CollectionManager<K extends ContentResource>({
   getLabel,
   getSubtitle,
   searchText,
-  extraStatus
+  extraStatus,
+  getImages
 }: CollectionManagerProps<K>) {
   const list = useCollectionList(resource);
   const createItem = useCreateItem(resource);
@@ -93,6 +97,7 @@ export function CollectionManager<K extends ContentResource>({
   }
 
   async function handleSubmit(values: CreateDoc<CollectionDoc[K]>) {
+    const previous = editing ? (getImages?.(editing) ?? []) : [];
     try {
       if (editing) {
         const updated = await updateItem.mutateAsync({ id: editing.id, data: values });
@@ -102,6 +107,9 @@ export function CollectionManager<K extends ContentResource>({
         toast.success(`Created "${getLabel(created)}"`);
       }
       setOpen(false);
+      const next = getImages ? (getImages(values as unknown as CollectionDoc[K]) ?? []) : [];
+      const removed = mediaDiffRemoved(previous, next);
+      if (removed.length > 0) void deleteMedia(removed);
     } catch {
       // error toast is handled centrally by the mutation hook
     }
@@ -109,7 +117,11 @@ export function CollectionManager<K extends ContentResource>({
 
   function handleDelete(row: CollectionDoc[K]) {
     if (window.confirm(`Delete "${getLabel(row)}"? This cannot be undone.`)) {
-      void deleteItem.mutateAsync(row.id).then(() => toast.success(`Deleted "${getLabel(row)}"`));
+      void deleteItem.mutateAsync(row.id).then(() => {
+        toast.success(`Deleted "${getLabel(row)}"`);
+        const urls = getImages?.(row) ?? [];
+        if (urls.length > 0) void deleteMedia(urls);
+      });
     }
   }
 
@@ -228,7 +240,7 @@ export function CollectionManager<K extends ContentResource>({
             <DialogDescription>{description}</DialogDescription>
           </DialogHeader>
           <Form
-            key={editing?.id ?? "new"}
+            key={`${editing?.id ?? "new"}-${open ? "open" : "closed"}`}
             isEdit={!!editing}
             submitting={submitting}
             defaultValues={editing ? omitId(editing) : undefined}

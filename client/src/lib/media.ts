@@ -63,6 +63,41 @@ export async function uploadFile(file: File, kind: UploadKind): Promise<Uploaded
   return data as UploadedAsset;
 }
 
+export interface MediaDeleteResult {
+  deleted: string[];
+  skipped: string[];
+}
+
+export async function deleteMedia(urls: string[]): Promise<MediaDeleteResult> {
+  const unique = Array.from(new Set(urls.filter(Boolean)));
+  if (unique.length === 0) return { deleted: [], skipped: [] };
+
+  const res = await fetch("/api/media", {
+    method: "DELETE",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ urls: unique }),
+    cache: "no-store"
+  });
+
+  if (res.status === 401) {
+    await handleUnauthorized();
+    throw new ApiError(401, "Session expired. Please log in again.");
+  }
+
+  const text = await res.text();
+  const data = text
+    ? (JSON.parse(text) as MediaDeleteResult | { error?: { message?: string } })
+    : undefined;
+
+  if (!res.ok) {
+    const message =
+      (data as { error?: { message?: string } })?.error?.message ?? `Delete failed (${res.status})`;
+    throw new ApiError(res.status, message);
+  }
+
+  return (data as MediaDeleteResult) ?? { deleted: [], skipped: [] };
+}
+
 export interface ResumeUploadResult {
   id: string;
   fileName: string;

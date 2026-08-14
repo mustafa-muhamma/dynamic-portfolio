@@ -10,6 +10,7 @@ export default function ProfilePage() {
       title="Profile"
       description="Name, title, bio, photo, resume"
       Form={ProfileForm}
+      getImages={(doc) => (doc.photo ? [doc.photo] : [])}
     />
   );
 }

@@ -10,6 +10,7 @@ export default function HeroPage() {
       title="Hero"
       description="Headline, intro, call-to-action buttons, and background"
       Form={HeroForm}
+      getImages={(doc) => [doc.image, doc.backgroundImage].filter((u): u is string => Boolean(u))}
     />
   );
 }

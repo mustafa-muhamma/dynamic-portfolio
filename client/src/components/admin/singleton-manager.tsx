@@ -1,27 +1,33 @@
 "use client";
 
+import { useState } from "react";
 import { toast } from "sonner";
 
 import { Skeleton } from "@/components/ui/skeleton";
 import { useSingleton, useUpsertSingleton } from "@/hooks/use-content";
 import type { CreateDoc, SingletonDoc, SingletonResource } from "@/lib/content";
 import type { ResourceFormProps } from "@/components/admin/collection-manager";
+import { mediaDiffRemoved } from "@/lib/images";
+import { deleteMedia } from "@/lib/media";
 
 type SingletonManagerProps<K extends SingletonResource> = {
   resource: K;
   title: string;
   description: string;
   Form: React.ComponentType<ResourceFormProps<SingletonDoc[K]>>;
+  getImages?: (doc: SingletonDoc[K]) => string[];
 };
 
 export function SingletonManager<K extends SingletonResource>({
   resource,
   title,
   description,
-  Form
+  Form,
+  getImages
 }: SingletonManagerProps<K>) {
   const singleton = useSingleton(resource);
   const upsert = useUpsertSingleton(resource);
+  const [savedAt, setSavedAt] = useState(0);
 
   if (singleton.isPending) {
     return (
@@ -47,12 +53,22 @@ export function SingletonManager<K extends SingletonResource>({
         <p className="text-sm text-muted-foreground">{description}</p>
       </div>
       <Form
+        key={`${resource}-${savedAt}`}
         isEdit={!!singleton.data}
         submitting={upsert.isPending}
         defaultValues={singleton.data ? omitId(singleton.data) : undefined}
-        onSubmit={(values) =>
-          upsert.mutate(values, { onSuccess: () => toast.success(`${title} saved`) })
-        }
+        onSubmit={(values) => {
+          const previous = singleton.data ? (getImages?.(singleton.data) ?? []) : [];
+          upsert.mutate(values, {
+            onSuccess: () => {
+              setSavedAt((n) => n + 1);
+              toast.success(`${title} saved`);
+              const next = getImages ? (getImages(values as unknown as SingletonDoc[K]) ?? []) : [];
+              const removed = mediaDiffRemoved(previous, next);
+              if (removed.length > 0) void deleteMedia(removed);
+            }
+          });
+        }}
       />
     </div>
   );
