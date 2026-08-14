@@ -7,17 +7,21 @@ import {
   Calendar,
   ChevronLeft,
   ChevronRight,
+  Expand,
   Folder,
   GitFork,
   Sparkles,
-  UserRound
+  UserRound,
+  X
 } from "lucide-react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import { GradientOrbs, Reveal } from "@/components/public/motion";
 import { useProjectBySlug, useTestimonials } from "@/hooks/use-public";
+import type { GalleryImage } from "@/lib/content";
+import { normalizeGalleryImages } from "@/lib/images";
 import { cn } from "@/lib/utils";
 
 function formatMonth(value?: string): string {
@@ -30,10 +34,31 @@ function formatMonth(value?: string): string {
   return value;
 }
 
-function Gallery({ images, title }: { images: string[]; title: string }) {
+function Gallery({ images, title }: { images: (string | GalleryImage)[]; title: string }) {
   const [index, setIndex] = useState(0);
+  const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
+  const gallery = normalizeGalleryImages(images);
 
-  if (images.length === 0) {
+  useEffect(() => {
+    if (lightboxIndex === null) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        setLightboxIndex(null);
+        return;
+      }
+      if (gallery.length <= 1) return;
+      if (e.key === "ArrowLeft") {
+        setLightboxIndex((i) => (i === null ? i : (i - 1 + gallery.length) % gallery.length));
+      }
+      if (e.key === "ArrowRight") {
+        setLightboxIndex((i) => (i === null ? i : (i + 1) % gallery.length));
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [lightboxIndex, gallery.length]);
+
+  if (gallery.length === 0) {
     return (
       <div className="relative flex aspect-[16/10] items-center justify-center overflow-hidden rounded-3xl bg-gradient-brand/10">
         <div
@@ -46,89 +71,158 @@ function Gallery({ images, title }: { images: string[]; title: string }) {
   }
 
   return (
-    <div>
-      <div className="group relative overflow-hidden rounded-3xl border border-border">
-        <div className="relative aspect-[16/10]">
-          <AnimatePresence initial={false}>
-            <motion.img
-              key={index}
-              src={images[index]}
-              alt={`${title} — screenshot ${index + 1}`}
-              className="absolute inset-0 h-full w-full object-cover"
-              initial={{ opacity: 0, scale: 1.05 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
-            />
-          </AnimatePresence>
+    <>
+      <div>
+        <div className="group relative overflow-hidden rounded-3xl border border-border">
+          <div className="relative aspect-[16/10]">
+            <AnimatePresence initial={false}>
+              <motion.img
+                key={index}
+                src={gallery[index].url}
+                alt={`${title} — screenshot ${index + 1}`}
+                className="absolute inset-0 h-full w-full object-cover"
+                initial={{ opacity: 0, scale: 1.05 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
+              />
+            </AnimatePresence>
+          </div>
+
+          <div
+            aria-hidden="true"
+            className="pointer-events-none absolute inset-0 rounded-3xl ring-1 ring-white/10 ring-inset"
+          />
+
+          <button
+            type="button"
+            aria-label="View full image"
+            onClick={() => setLightboxIndex(index)}
+            className="absolute inset-0 flex items-center justify-center"
+          >
+            <span className="flex size-12 items-center justify-center rounded-full bg-background/70 text-foreground opacity-0 backdrop-blur transition-all group-hover:opacity-100 hover:bg-background">
+              <Expand className="size-5" />
+            </span>
+          </button>
+
+          {gallery.length > 1 ? (
+            <>
+              <button
+                type="button"
+                aria-label="Previous image"
+                onClick={() => setIndex((i) => (i - 1 + gallery.length) % gallery.length)}
+                className="absolute top-1/2 left-4 flex size-10 -translate-y-1/2 items-center justify-center rounded-full bg-background/70 text-foreground opacity-0 backdrop-blur transition-all group-hover:opacity-100 hover:bg-background"
+              >
+                <ChevronLeft className="size-5" />
+              </button>
+              <button
+                type="button"
+                aria-label="Next image"
+                onClick={() => setIndex((i) => (i + 1) % gallery.length)}
+                className="absolute top-1/2 right-4 flex size-10 -translate-y-1/2 items-center justify-center rounded-full bg-background/70 text-foreground opacity-0 backdrop-blur transition-all group-hover:opacity-100 hover:bg-background"
+              >
+                <ChevronRight className="size-5" />
+              </button>
+              <span className="absolute bottom-4 left-4 rounded-full bg-background/80 px-2.5 py-1 font-mono text-xs text-muted-foreground backdrop-blur">
+                {index + 1} / {gallery.length}
+              </span>
+            </>
+          ) : null}
+
+          {gallery.length > 1 ? (
+            <div className="absolute right-4 bottom-4 flex gap-1.5">
+              {gallery.map((_, i) => (
+                <button
+                  key={i}
+                  type="button"
+                  aria-label={`Go to image ${i + 1}`}
+                  onClick={() => setIndex(i)}
+                  className={cn(
+                    "size-1.5 rounded-full transition-all",
+                    i === index ? "w-6 bg-brand-2" : "bg-background/60 hover:bg-background"
+                  )}
+                />
+              ))}
+            </div>
+          ) : null}
         </div>
 
-        <div
-          aria-hidden="true"
-          className="pointer-events-none absolute inset-0 rounded-3xl ring-1 ring-white/10 ring-inset"
-        />
-
-        {images.length > 1 ? (
-          <>
-            <button
-              type="button"
-              aria-label="Previous image"
-              onClick={() => setIndex((i) => (i - 1 + images.length) % images.length)}
-              className="absolute top-1/2 left-4 flex size-10 -translate-y-1/2 items-center justify-center rounded-full bg-background/70 text-foreground opacity-0 backdrop-blur transition-all group-hover:opacity-100 hover:bg-background"
-            >
-              <ChevronLeft className="size-5" />
-            </button>
-            <button
-              type="button"
-              aria-label="Next image"
-              onClick={() => setIndex((i) => (i + 1) % images.length)}
-              className="absolute top-1/2 right-4 flex size-10 -translate-y-1/2 items-center justify-center rounded-full bg-background/70 text-foreground opacity-0 backdrop-blur transition-all group-hover:opacity-100 hover:bg-background"
-            >
-              <ChevronRight className="size-5" />
-            </button>
-            <span className="absolute bottom-4 left-4 rounded-full bg-background/80 px-2.5 py-1 font-mono text-xs text-muted-foreground backdrop-blur">
-              {index + 1} / {images.length}
-            </span>
-          </>
-        ) : null}
-
-        {images.length > 1 ? (
-          <div className="absolute right-4 bottom-4 flex gap-1.5">
-            {images.map((_, i) => (
+        {gallery.length > 1 ? (
+          <div className="mt-4 flex gap-3 overflow-x-auto pb-2">
+            {gallery.map((image, i) => (
               <button
-                key={i}
+                key={image.url}
                 type="button"
-                aria-label={`Go to image ${i + 1}`}
+                aria-label={`Show image ${i + 1}`}
                 onClick={() => setIndex(i)}
                 className={cn(
-                  "size-1.5 rounded-full transition-all",
-                  i === index ? "w-6 bg-brand-2" : "bg-background/60 hover:bg-background"
+                  "relative h-20 w-32 shrink-0 overflow-hidden rounded-xl border-2 transition-all",
+                  i === index ? "border-brand-2" : "border-border opacity-60 hover:opacity-100"
                 )}
-              />
+              >
+                <img src={image.url} alt="" className="h-full w-full object-cover" />
+              </button>
             ))}
           </div>
         ) : null}
       </div>
 
-      {images.length > 1 ? (
-        <div className="mt-4 flex gap-3 overflow-x-auto pb-2">
-          {images.map((src, i) => (
-            <button
-              key={src}
-              type="button"
-              aria-label={`Show image ${i + 1}`}
-              onClick={() => setIndex(i)}
-              className={cn(
-                "relative h-20 w-32 shrink-0 overflow-hidden rounded-xl border-2 transition-all",
-                i === index ? "border-brand-2" : "border-border opacity-60 hover:opacity-100"
-              )}
-            >
-              <img src={src} alt="" className="h-full w-full object-cover" />
-            </button>
-          ))}
+      {lightboxIndex !== null && gallery.length > 0 ? (
+        <div
+          className="fixed inset-0 z-[90] flex items-center justify-center bg-black/85 p-4"
+          onClick={() => setLightboxIndex(null)}
+          role="dialog"
+          aria-modal="true"
+          aria-label={`Full image ${lightboxIndex + 1} of ${gallery.length}`}
+        >
+          <button
+            type="button"
+            aria-label="Close full image"
+            onClick={() => setLightboxIndex(null)}
+            className="absolute top-4 right-4 flex size-9 items-center justify-center rounded-full bg-white/10 text-white transition-colors hover:bg-white/20"
+          >
+            <X className="size-5" />
+          </button>
+          {gallery.length > 1 ? (
+            <>
+              <button
+                type="button"
+                aria-label="Previous image"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setLightboxIndex((lightboxIndex - 1 + gallery.length) % gallery.length);
+                }}
+                className="absolute top-1/2 left-4 flex size-10 -translate-y-1/2 items-center justify-center rounded-full bg-white/10 text-white transition-colors hover:bg-white/20"
+              >
+                <ChevronLeft className="size-5" />
+              </button>
+              <button
+                type="button"
+                aria-label="Next image"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setLightboxIndex((lightboxIndex + 1) % gallery.length);
+                }}
+                className="absolute top-1/2 right-4 flex size-10 -translate-y-1/2 items-center justify-center rounded-full bg-white/10 text-white transition-colors hover:bg-white/20"
+              >
+                <ChevronRight className="size-5" />
+              </button>
+            </>
+          ) : null}
+          <img
+            src={gallery[lightboxIndex].originalUrl}
+            alt={`${title} — full image ${lightboxIndex + 1}`}
+            onClick={(e) => e.stopPropagation()}
+            className="max-h-[85vh] max-w-[90vw] rounded-lg object-contain"
+          />
+          {gallery.length > 1 ? (
+            <span className="absolute bottom-4 left-1/2 -translate-x-1/2 rounded-full bg-white/10 px-3 py-1 font-mono text-xs text-white">
+              {lightboxIndex + 1} / {gallery.length}
+            </span>
+          ) : null}
         </div>
       ) : null}
-    </div>
+    </>
   );
 }
 
@@ -160,12 +254,12 @@ function ProjectReviews({ projectId }: { projectId: string }) {
                   &ldquo;{quote}&rdquo;
                 </blockquote>
               ) : null}
-              {review.images && review.images.length > 0 ? (
+              {review.images && normalizeGalleryImages(review.images).length > 0 ? (
                 <div className="mt-5 grid grid-cols-3 gap-2">
-                  {review.images.map((src, index) => (
+                  {normalizeGalleryImages(review.images).map((image, index) => (
                     <div key={index} className="overflow-hidden rounded-lg border border-border">
                       <img
-                        src={src}
+                        src={image.url}
                         alt={`Proof screenshot ${index + 1}`}
                         className="aspect-video w-full object-cover"
                       />
