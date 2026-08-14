@@ -254,7 +254,16 @@ function ProjectReviews({ projectId }: { projectId: string }) {
                   &ldquo;{quote}&rdquo;
                 </blockquote>
               ) : null}
-              {review.images && normalizeGalleryImages(review.images).length > 0 ? (
+              {review.images && normalizeGalleryImages(review.images).length === 1 ? (
+                <div className="mt-5 overflow-hidden rounded-lg border border-border">
+                  <img
+                    src={normalizeGalleryImages(review.images)[0].url}
+                    alt="Proof screenshot"
+                    className="aspect-video w-full object-cover"
+                  />
+                </div>
+              ) : null}
+              {review.images && normalizeGalleryImages(review.images).length > 1 ? (
                 <div className="mt-5 grid grid-cols-3 gap-2">
                   {normalizeGalleryImages(review.images).map((image, index) => (
                     <div key={index} className="overflow-hidden rounded-lg border border-border">

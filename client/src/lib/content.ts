@@ -144,6 +144,7 @@ export type SiteSettings = ApiDoc<{
   tagline?: string;
   navigationLabels?: Record<string, string>;
   sectionVisibility?: { key: string; label: string; enabled: boolean }[];
+  testimonialsUrl?: string;
 }>;
 
 export type Inquiry = ApiDoc<{

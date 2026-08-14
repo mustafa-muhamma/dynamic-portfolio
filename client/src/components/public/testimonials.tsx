@@ -1,12 +1,12 @@
 "use client";
 
-import { ChevronLeft, ChevronRight, ExternalLink, Quote, Sparkles } from "lucide-react";
+import { ChevronLeft, ChevronRight, ExternalLink, Quote, Sparkles, X } from "lucide-react";
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { GradientOrbs, Reveal } from "@/components/public/motion";
 import { Section, SectionHeading } from "@/components/public/section";
-import { useProjects, useTestimonials } from "@/hooks/use-public";
+import { useProjects, useSiteSettings, useTestimonials } from "@/hooks/use-public";
 import type { Project, Testimonial } from "@/lib/content";
 import { normalizeGalleryImages } from "@/lib/images";
 import { cn } from "@/lib/utils";
@@ -33,6 +33,28 @@ function TestimonialCard({
   const company = item.company?.trim() || "";
   const quote = item.quote?.trim() || "";
   const hasIdentity = Boolean(author || item.avatar || role || company);
+  const [previewIndex, setPreviewIndex] = useState<number | null>(null);
+
+  useEffect(() => {
+    if (previewIndex === null) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        setPreviewIndex(null);
+        return;
+      }
+      if (screenshots.length <= 1) return;
+      if (e.key === "ArrowLeft") {
+        setPreviewIndex((i) =>
+          i === null ? i : (i - 1 + screenshots.length) % screenshots.length
+        );
+      }
+      if (e.key === "ArrowRight") {
+        setPreviewIndex((i) => (i === null ? i : (i + 1) % screenshots.length));
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [previewIndex, screenshots.length]);
 
   return (
     <article
@@ -41,37 +63,57 @@ function TestimonialCard({
         className
       )}
     >
+      {project ? (
+        <Link
+          href={projectHref(project)}
+          className="mb-4 inline-flex w-fit items-center gap-1.5 rounded-full border border-brand-2/40 bg-brand-2/10 px-3 py-1 text-xs font-semibold text-brand-2 transition-colors hover:bg-brand-2/20"
+        >
+          <Sparkles className="size-3" />
+          {project.title}
+          <ExternalLink className="size-3" />
+        </Link>
+      ) : null}
+
       {quote ? (
         <>
           <Quote aria-hidden="true" className="absolute top-6 right-6 size-8 text-brand-1/20" />
-
-          {project ? (
-            <Link
-              href={projectHref(project)}
-              className="mb-4 inline-flex w-fit items-center gap-1.5 rounded-full border border-brand-2/40 bg-brand-2/10 px-3 py-1 text-xs font-semibold text-brand-2 transition-colors hover:bg-brand-2/20"
-            >
-              <Sparkles className="size-3" />
-              {project.title}
-              <ExternalLink className="size-3" />
-            </Link>
-          ) : null}
-
           <blockquote className="text-base leading-relaxed text-foreground">
             &ldquo;{quote}&rdquo;
           </blockquote>
         </>
       ) : null}
 
-      {screenshots.length > 0 ? (
+      {screenshots.length === 1 ? (
+        <button
+          type="button"
+          aria-label="Preview proof screenshot"
+          onClick={() => setPreviewIndex(0)}
+          className="overflow-hidden rounded-lg border border-border"
+        >
+          <img
+            src={screenshots[0].url}
+            alt="Proof screenshot"
+            className="aspect-video w-full object-cover transition-transform hover:scale-[1.02]"
+          />
+        </button>
+      ) : null}
+
+      {screenshots.length > 1 ? (
         <div className="grid grid-cols-3 gap-2">
           {screenshots.slice(0, 3).map((src, index) => (
-            <div key={index} className="overflow-hidden rounded-lg border border-border">
+            <button
+              key={index}
+              type="button"
+              aria-label={`Preview proof screenshot ${index + 1}`}
+              onClick={() => setPreviewIndex(index)}
+              className="overflow-hidden rounded-lg border border-border"
+            >
               <img
                 src={src.url}
                 alt={`Proof screenshot ${index + 1}`}
-                className="aspect-video w-full object-cover"
+                className="aspect-video w-full object-cover transition-transform hover:scale-[1.02]"
               />
-            </div>
+            </button>
           ))}
         </div>
       ) : null}
@@ -102,6 +144,60 @@ function TestimonialCard({
           </div>
         </div>
       ) : null}
+
+      {previewIndex !== null && screenshots.length > 0 ? (
+        <div
+          className="fixed inset-0 z-[100] flex items-center justify-center bg-black/85 p-4"
+          onClick={() => setPreviewIndex(null)}
+          role="dialog"
+          aria-modal="true"
+          aria-label={`Proof screenshot ${previewIndex + 1} of ${screenshots.length}`}
+        >
+          <button
+            type="button"
+            aria-label="Close preview"
+            onClick={() => setPreviewIndex(null)}
+            className="absolute top-4 right-4 flex size-9 items-center justify-center rounded-full bg-white/10 text-white transition-colors hover:bg-white/20"
+          >
+            <X className="size-5" />
+          </button>
+          {screenshots.length > 1 ? (
+            <>
+              <button
+                type="button"
+                aria-label="Previous screenshot"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setPreviewIndex((previewIndex - 1 + screenshots.length) % screenshots.length);
+                }}
+                className="absolute top-1/2 left-4 flex size-10 -translate-y-1/2 items-center justify-center rounded-full bg-white/10 text-white transition-colors hover:bg-white/20"
+              >
+                <ChevronLeft className="size-5" />
+              </button>
+              <button
+                type="button"
+                aria-label="Next screenshot"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setPreviewIndex((previewIndex + 1) % screenshots.length);
+                }}
+                className="absolute top-1/2 right-4 flex size-10 -translate-y-1/2 items-center justify-center rounded-full bg-white/10 text-white transition-colors hover:bg-white/20"
+              >
+                <ChevronRight className="size-5" />
+              </button>
+            </>
+          ) : null}
+          <img
+            src={screenshots[previewIndex].originalUrl}
+            alt={`Full proof screenshot ${previewIndex + 1}`}
+            onClick={(e) => e.stopPropagation()}
+            className="max-h-[85vh] max-w-[90vw] rounded-lg object-contain"
+          />
+          <span className="absolute bottom-4 left-1/2 -translate-x-1/2 rounded-full bg-white/10 px-3 py-1 font-mono text-xs text-white">
+            {previewIndex + 1} / {screenshots.length}
+          </span>
+        </div>
+      ) : null}
     </article>
   );
 }
@@ -109,6 +205,8 @@ function TestimonialCard({
 export function Testimonials() {
   const { data: testimonials } = useTestimonials();
   const { data: projects } = useProjects();
+  const { data: siteSettings } = useSiteSettings();
+  const testimonialsUrl = siteSettings?.testimonialsUrl?.trim() || "";
 
   const items = useMemo(
     () => (testimonials ? [...testimonials].sort((a, b) => (b.order ?? 0) - (a.order ?? 0)) : []),
@@ -230,6 +328,18 @@ export function Testimonials() {
               <ChevronRight className="size-5" />
             </button>
           </div>
+        ) : null}
+
+        {testimonialsUrl ? (
+          <Reveal delay={0.1} className="mt-12 text-center">
+            <Link
+              href={testimonialsUrl}
+              className="inline-flex items-center justify-center gap-2 rounded-full border border-border px-6 py-3 text-sm font-semibold text-foreground transition-colors hover:border-brand-2 hover:text-brand-2"
+            >
+              View all testimonials
+              <ExternalLink className="size-4" />
+            </Link>
+          </Reveal>
         ) : null}
       </div>
     </Section>
