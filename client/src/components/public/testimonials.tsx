@@ -8,6 +8,7 @@ import { GradientOrbs, Reveal } from "@/components/public/motion";
 import { Section, SectionHeading } from "@/components/public/section";
 import { useProjects, useTestimonials } from "@/hooks/use-public";
 import type { Project, Testimonial } from "@/lib/content";
+import { normalizeGalleryImages } from "@/lib/images";
 import { cn } from "@/lib/utils";
 
 const GAP = 24;
@@ -26,7 +27,7 @@ function TestimonialCard({
   project?: Project;
   className?: string;
 }) {
-  const screenshots = item.images ?? [];
+  const screenshots = normalizeGalleryImages(item.images);
   const author = item.author?.trim() || "";
   const role = item.role?.trim() || "";
   const company = item.company?.trim() || "";
@@ -66,7 +67,7 @@ function TestimonialCard({
           {screenshots.slice(0, 3).map((src, index) => (
             <div key={index} className="overflow-hidden rounded-lg border border-border">
               <img
-                src={src}
+                src={src.url}
                 alt={`Proof screenshot ${index + 1}`}
                 className="aspect-video w-full object-cover"
               />

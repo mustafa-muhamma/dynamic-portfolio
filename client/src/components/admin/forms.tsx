@@ -37,6 +37,7 @@ import type {
   ContactSettings,
   Education,
   Experience,
+  GalleryImage,
   Hero,
   Pricing,
   Process,
@@ -67,6 +68,11 @@ const optionalArray = z.preprocess(
       : v,
   z.array(z.string().trim()).optional()
 );
+const galleryImageSchema = z.object({
+  url: z.string().trim().min(1),
+  originalUrl: z.string().trim().min(1)
+});
+const optionalGalleryImages = z.array(z.union([z.string().trim(), galleryImageSchema])).optional();
 
 function FormShell({
   children,
@@ -671,7 +677,7 @@ const projectSchema = z.object({
   link: optionalString,
   repo: optionalString,
   technologies: optionalArray,
-  images: optionalArray,
+  images: optionalGalleryImages,
   featured: optionalBool,
   inProgress: optionalBool,
   order: optionalNumber,
@@ -703,7 +709,7 @@ export function ProjectForm({
     defaultValues: { featured: false, inProgress: false, published: false, ...defaultValues }
   });
   const technologies = useWatch({ control, name: "technologies" }) as string[] | undefined;
-  const images = useWatch({ control, name: "images" }) as string[] | undefined;
+  const images = useWatch({ control, name: "images" }) as (string | GalleryImage)[] | undefined;
   const featured = useWatch({ control, name: "featured" });
   const published = useWatch({ control, name: "published" });
   const inProgress = useWatch({ control, name: "inProgress" });
@@ -772,7 +778,8 @@ export function ProjectForm({
         label="Images"
         value={images}
         onChange={(v) => setValue("images", v)}
-        hint="PNG, JPG, WebP, GIF, or SVG. Max 5MB each."
+        aspect={16 / 10}
+        hint="PNG, JPG, WebP, GIF, or SVG. Max 5MB each. Crop selects the part shown in the gallery; the full image stays available in the click preview."
       />
       <NumberField label="Order" id="order" error={errors.order?.message} {...register("order")} />
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
@@ -1067,7 +1074,7 @@ const testimonialBaseSchema = z.object({
   quote: optionalString,
   avatar: optionalString,
   projectId: optionalString,
-  images: optionalArray,
+  images: optionalGalleryImages,
   order: optionalNumber,
   published: optionalBool
 });
@@ -1110,14 +1117,14 @@ export function TestimonialForm({
   });
   const published = useWatch({ control, name: "published" });
   const avatar = useWatch({ control, name: "avatar" });
-  const images = useWatch({ control, name: "images" }) as string[] | undefined;
+  const images = useWatch({ control, name: "images" }) as (string | GalleryImage)[] | undefined;
   const projectId = useWatch({ control, name: "projectId" });
   const projects = useCollectionList("projects");
   const projectOptions = (Array.isArray(projects.data) ? projects.data : []).sort(
     (a, b) => (b.order ?? 0) - (a.order ?? 0)
   );
 
-  function handleImagesChange(next: string[]) {
+  function handleImagesChange(next: GalleryImage[]) {
     setValue("images", next, { shouldDirty: true });
     if (next.length > 0) {
       clearErrors(["author", "quote"]);
@@ -1190,7 +1197,8 @@ export function TestimonialForm({
         label="Proof screenshots"
         value={images}
         onChange={handleImagesChange}
-        hint="Upload screenshots to make Author, Role, Company, Quote, and Avatar optional. PNG, JPG, WebP, GIF, or SVG. Max 5MB each."
+        aspect={16 / 9}
+        hint="Upload screenshots to make Author, Role, Company, Quote, and Avatar optional. Crop selects the part shown; the full image stays available in the click preview. PNG, JPG, WebP, GIF, or SVG. Max 5MB each."
       />
       <NumberField label="Order" id="order" error={errors.order?.message} {...register("order")} />
       <SwitchField

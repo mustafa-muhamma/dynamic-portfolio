@@ -13,7 +13,7 @@ const projectSchema = new Schema(
     link: { type: String, default: "" },
     repo: { type: String, default: "" },
     technologies: { type: [String], default: [] },
-    images: { type: [String], default: [] },
+    images: { type: [Schema.Types.Mixed], default: [] },
     featured: { type: Boolean, default: false },
     inProgress: { type: Boolean, default: false },
     order: { type: Number, default: 0 },

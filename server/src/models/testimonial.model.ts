@@ -11,7 +11,7 @@ const testimonialSchema = new Schema(
     quote: { type: String, default: "" },
     avatar: { type: String, default: "" },
     projectId: { type: String, default: "" },
-    images: { type: [String], default: [] },
+    images: { type: [Schema.Types.Mixed], default: [] },
     order: { type: Number, default: 0 },
     published: { type: Boolean, default: false }
   },

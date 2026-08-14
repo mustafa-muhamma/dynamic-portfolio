@@ -6,11 +6,13 @@ import { Loader2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { cropImageToBlob } from "@/lib/crop";
+import { cn } from "@/lib/utils";
 
 type ImageCropModalProps = {
   src: string;
   fileName: string;
   aspect?: number;
+  shape?: "round" | "rect";
   uploading: boolean;
   onCancel: () => void;
   onSave: (blob: Blob) => Promise<void> | void;
@@ -21,6 +23,7 @@ export function ImageCropModal({
   src,
   fileName,
   aspect = 1,
+  shape = "round",
   uploading,
   onCancel,
   onSave,
@@ -86,7 +89,8 @@ export function ImageCropModal({
               crop={crop}
               zoom={zoom}
               aspect={aspect}
-              cropShape="round"
+              cropShape={shape}
+              showGrid={shape === "rect"}
               onCropChange={setCrop}
               onZoomChange={setZoom}
               onCropComplete={(_, areaPixels) => setPixels(areaPixels)}
@@ -95,8 +99,14 @@ export function ImageCropModal({
           </div>
 
           <div className="flex flex-col items-center gap-2">
-            <div className="rounded-full bg-gradient-brand p-[2px]">
-              <div className="relative size-32 overflow-hidden rounded-full bg-muted">
+            <div className="rounded-[26px] bg-gradient-brand p-[2px]">
+              <div
+                className={cn(
+                  "relative overflow-hidden bg-muted",
+                  shape === "round" ? "size-32 rounded-full" : "w-40 rounded-xl"
+                )}
+                style={shape === "rect" ? { aspectRatio: aspect } : undefined}
+              >
                 {previewSrc ? (
                   <img
                     src={previewSrc}

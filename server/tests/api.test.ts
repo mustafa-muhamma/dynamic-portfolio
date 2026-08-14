@@ -228,6 +228,50 @@ describe("admin write endpoints", () => {
       .expect(200);
     expect(res.body.heading).toBe("Welcome");
   });
+
+  it("stores project gallery images as strings or { url, originalUrl } objects", async () => {
+    const res = await request(app)
+      .post("/api/v1/admin/projects")
+      .set(authed())
+      .send({
+        title: "Gallery Project",
+        images: [
+          "https://res.cloudinary.com/acme/image/upload/v1/a/b.png",
+          {
+            url: "https://res.cloudinary.com/acme/image/upload/v1/c/d.png",
+            originalUrl: "https://res.cloudinary.com/acme/image/upload/v1/c/e.png"
+          }
+        ]
+      })
+      .expect(201);
+    expect(res.body.images).toHaveLength(2);
+    expect(res.body.images[0]).toBe("https://res.cloudinary.com/acme/image/upload/v1/a/b.png");
+    expect(res.body.images[1]).toEqual({
+      url: "https://res.cloudinary.com/acme/image/upload/v1/c/d.png",
+      originalUrl: "https://res.cloudinary.com/acme/image/upload/v1/c/e.png"
+    });
+  });
+
+  it("stores testimonial proof screenshots as { url, originalUrl } objects", async () => {
+    const res = await request(app)
+      .post("/api/v1/admin/testimonials")
+      .set(authed())
+      .send({
+        author: "Verified Client",
+        quote: "Great work",
+        images: [
+          {
+            url: "https://res.cloudinary.com/acme/image/upload/v1/shot/crop.png",
+            originalUrl: "https://res.cloudinary.com/acme/image/upload/v1/shot/full.png"
+          }
+        ]
+      })
+      .expect(201);
+    expect(res.body.images).toHaveLength(1);
+    expect(res.body.images[0].originalUrl).toBe(
+      "https://res.cloudinary.com/acme/image/upload/v1/shot/full.png"
+    );
+  });
 });
 
 describe("admin read endpoints", () => {
@@ -370,6 +414,32 @@ describe("media upload", () => {
       .set("Authorization", `Bearer ${token}`)
       .attach("file", Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]), "test.png")
       .expect(500);
+    expect(res.body.error.code).toBe("MEDIA_NOT_CONFIGURED");
+  });
+
+  it("rejects media deletion without a token", async () => {
+    const res = await request(app)
+      .delete("/api/v1/media")
+      .send({ urls: ["https://res.cloudinary.com/demo/image/upload/v1/sample.jpg"] })
+      .expect(401);
+    expect(res.body.error.code).toBe("UNAUTHORIZED");
+  });
+
+  it("rejects media deletion without a urls array", async () => {
+    const res = await request(app)
+      .delete("/api/v1/media")
+      .set("Authorization", `Bearer ${token}`)
+      .send({ urls: [] })
+      .expect(400);
+    expect(res.body.error.code).toBe("NO_URLS");
+  });
+
+  it("fails gracefully when Cloudinary is not configured on deletion", async () => {
+    const res = await request(app)
+      .delete("/api/v1/media")
+      .set("Authorization", `Bearer ${token}`)
+      .send({ urls: ["https://res.cloudinary.com/demo/image/upload/v1/sample.jpg"] })
+      .expect(503);
     expect(res.body.error.code).toBe("MEDIA_NOT_CONFIGURED");
   });
 });

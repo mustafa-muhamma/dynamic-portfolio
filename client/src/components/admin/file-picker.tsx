@@ -2,17 +2,32 @@
 "use client";
 
 import { useEffect, useId, useRef, useState } from "react";
-import { FileText, Link2, Loader2, Upload, X } from "lucide-react";
+import {
+  Check,
+  ChevronLeft,
+  ChevronRight,
+  Crop,
+  Expand,
+  FileText,
+  GripVertical,
+  Link2,
+  Loader2,
+  Upload,
+  X
+} from "lucide-react";
 import { toast } from "sonner";
 
 import { ImageCropModal } from "@/components/admin/image-crop-modal";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import type { GalleryImage } from "@/lib/content";
 import { normalizeImage } from "@/lib/crop";
+import { normalizeGalleryImages } from "@/lib/images";
 import {
   DOCUMENT_ACCEPT,
   IMAGE_ACCEPT,
+  deleteMedia,
   uploadFile,
   validateFile,
   type UploadedAsset,
@@ -50,6 +65,7 @@ export function FilePicker({
 }: FilePickerProps) {
   const inputId = useId();
   const inputRef = useRef<HTMLInputElement>(null);
+  const uploadedRef = useRef<Set<string>>(new Set());
   const [uploading, setUploading] = useState(false);
   const [uploadError, setUploadError] = useState<string>();
   const [cropFile, setCropFile] = useState<File | null>(null);
@@ -66,7 +82,12 @@ export function FilePicker({
   async function uploadAndSet(file: File) {
     setUploading(true);
     try {
+      if (value && uploadedRef.current.has(value)) {
+        uploadedRef.current.delete(value);
+        void deleteMedia([value]);
+      }
       const asset = await uploadFile(file, kind);
+      uploadedRef.current.add(asset.url);
       onChange(asset.url);
       onUploaded?.(asset, file);
       toast.success(kind === "document" ? "File uploaded" : "Image uploaded");
@@ -161,7 +182,18 @@ export function FilePicker({
               {uploading ? "Uploading..." : value ? "Replace" : "Upload"}
             </Button>
             {value && (
-              <Button type="button" variant="ghost" size="sm" onClick={() => onChange("")}>
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                onClick={() => {
+                  if (value && uploadedRef.current.has(value)) {
+                    uploadedRef.current.delete(value);
+                    void deleteMedia([value]);
+                  }
+                  onChange("");
+                }}
+              >
                 <X />
                 Remove
               </Button>
@@ -204,26 +236,92 @@ export function FilePicker({
   );
 }
 
-type ImageListPickerProps = {
-  label: string;
-  value?: string[];
-  onChange: (urls: string[]) => void;
-  error?: string;
-  hint?: string;
+type PendingImage = {
+  id: string;
+  file: File;
+  src: string;
+  cropped?: Blob;
 };
 
-export function ImageListPicker({ label, value, onChange, error, hint }: ImageListPickerProps) {
+type ImageListPickerProps = {
+  label: string;
+  value?: (string | GalleryImage)[];
+  onChange: (images: GalleryImage[]) => void;
+  error?: string;
+  hint?: string;
+  aspect?: number;
+};
+
+export function ImageListPicker({
+  label,
+  value,
+  onChange,
+  error,
+  hint,
+  aspect = 16 / 10
+}: ImageListPickerProps) {
   const inputRef = useRef<HTMLInputElement>(null);
+  const dragIndex = useRef<number | null>(null);
+  const uploadedRef = useRef<Set<string>>(new Set());
+  const objectUrlsRef = useRef<Set<string>>(new Set());
+  const [pending, setPending] = useState<PendingImage[]>([]);
+  const [cropId, setCropId] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
   const [uploadError, setUploadError] = useState<string>();
   const [urlDraft, setUrlDraft] = useState("");
-  const urls = value ?? [];
+  const [previewIndex, setPreviewIndex] = useState<number | null>(null);
+
+  const images = normalizeGalleryImages(value);
+  const cropTarget = pending.find((item) => item.id === cropId);
+
+  useEffect(() => {
+    const urls = objectUrlsRef.current;
+    return () => {
+      for (const url of urls) URL.revokeObjectURL(url);
+      urls.clear();
+    };
+  }, []);
+
+  useEffect(() => {
+    if (previewIndex === null) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        setPreviewIndex(null);
+        return;
+      }
+      if (images.length <= 1) return;
+      if (e.key === "ArrowLeft") {
+        setPreviewIndex((i) => (i === null ? i : (i - 1 + images.length) % images.length));
+      }
+      if (e.key === "ArrowRight") {
+        setPreviewIndex((i) => (i === null ? i : (i + 1) % images.length));
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [previewIndex, images.length]);
+
+  async function addPending(file: File) {
+    let normalized: Blob;
+    try {
+      normalized = await normalizeImage(file);
+    } catch {
+      return;
+    }
+    const src = URL.createObjectURL(normalized);
+    objectUrlsRef.current.add(src);
+    setPending((items) => [
+      ...items,
+      {
+        id: `${file.name}-${Date.now()}-${Math.random().toString(36).slice(2)}`,
+        file,
+        src
+      }
+    ]);
+  }
 
   async function handleFiles(files: FileList | null) {
     if (!files?.length) return;
-    setUploading(true);
-    setUploadError(undefined);
-    const added: string[] = [];
     for (const file of Array.from(files)) {
       const validation = validateFile(file, "image");
       if (validation) {
@@ -231,47 +329,144 @@ export function ImageListPicker({ label, value, onChange, error, hint }: ImageLi
         toast.error(validation);
         continue;
       }
-      try {
-        const asset = await uploadFile(file, "image");
-        added.push(asset.url);
-      } catch (err) {
-        const message = err instanceof Error ? err.message : "Upload failed";
-        setUploadError(message);
-        toast.error(message);
-        break;
-      }
+      await addPending(file);
     }
-    if (added.length) {
-      onChange([...urls, ...added]);
-      toast.success(added.length === 1 ? "Image added" : `${added.length} images added`);
-    }
-    setUploading(false);
     if (inputRef.current) inputRef.current.value = "";
+  }
+
+  function revokePending(id: string) {
+    const target = pending.find((item) => item.id === id);
+    if (target) {
+      URL.revokeObjectURL(target.src);
+      objectUrlsRef.current.delete(target.src);
+    }
+    setPending((items) => items.filter((item) => item.id !== id));
+  }
+
+  function clearPending() {
+    for (const item of pending) {
+      URL.revokeObjectURL(item.src);
+      objectUrlsRef.current.delete(item.src);
+    }
+    setPending([]);
+  }
+
+  async function uploadImagePair(original: File, cropped?: Blob): Promise<GalleryImage> {
+    const originalAsset = await uploadFile(original, "image");
+    if (!cropped) {
+      uploadedRef.current.add(originalAsset.url);
+      return { url: originalAsset.url, originalUrl: originalAsset.url };
+    }
+    const croppedFile = new File([cropped], original.name, { type: cropped.type || "image/jpeg" });
+    const cropAsset = await uploadFile(croppedFile, "image");
+    uploadedRef.current.add(cropAsset.url);
+    uploadedRef.current.add(originalAsset.url);
+    return { url: cropAsset.url, originalUrl: originalAsset.url };
+  }
+
+  function saveCrop(blob: Blob) {
+    if (!cropId) return;
+    setPending((items) =>
+      items.map((item) => (item.id === cropId ? { ...item, cropped: blob } : item))
+    );
+    setCropId(null);
+  }
+
+  async function addAllPending() {
+    if (pending.length === 0 || uploading) return;
+    setUploading(true);
+    setUploadError(undefined);
+    try {
+      const added: GalleryImage[] = [];
+      for (const item of pending) {
+        added.push(await uploadImagePair(item.file, item.cropped));
+      }
+      onChange([...images, ...added]);
+      toast.success(added.length === 1 ? "Image added" : `${added.length} images added`);
+      clearPending();
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Upload failed";
+      setUploadError(message);
+      toast.error(message);
+    } finally {
+      setUploading(false);
+    }
+  }
+
+  function removeImage(index: number) {
+    const removed = images[index];
+    const toDelete = [removed.url, removed.originalUrl].filter((url) =>
+      uploadedRef.current.has(url)
+    );
+    for (const url of toDelete) uploadedRef.current.delete(url);
+    if (toDelete.length > 0) void deleteMedia(toDelete);
+    onChange(images.filter((_, i) => i !== index));
+  }
+
+  function moveImage(from: number, to: number) {
+    if (to < 0 || to >= images.length || from === to) return;
+    const next = [...images];
+    const [moved] = next.splice(from, 1);
+    next.splice(to, 0, moved);
+    onChange(next);
   }
 
   function addUrl() {
     const trimmed = urlDraft.trim();
     if (!trimmed) return;
-    onChange([...urls, trimmed]);
+    onChange([...images, { url: trimmed, originalUrl: trimmed }]);
     setUrlDraft("");
   }
 
   return (
     <div className="flex flex-col gap-1.5">
       <Label>{label}</Label>
-      {urls.length > 0 && (
+      {images.length > 0 && (
         <div className="flex flex-wrap gap-2">
-          {urls.map((url, index) => (
-            <div key={`${url}-${index}`} className="group relative">
-              <img src={url} alt="" className="size-16 rounded-md border object-cover" />
+          {images.map((image, index) => (
+            <div
+              key={`${image.url}-${index}`}
+              draggable
+              onDragStart={(e) => {
+                dragIndex.current = index;
+                e.dataTransfer.effectAllowed = "move";
+              }}
+              onDragOver={(e) => {
+                e.preventDefault();
+                e.dataTransfer.dropEffect = "move";
+              }}
+              onDrop={(e) => {
+                e.preventDefault();
+                const from = dragIndex.current;
+                dragIndex.current = null;
+                if (from != null) moveImage(from, index);
+              }}
+              onDragEnd={() => {
+                dragIndex.current = null;
+              }}
+              className="group relative cursor-grab active:cursor-grabbing"
+              title="Drag to reorder · click to preview"
+            >
+              <div className="relative">
+                <img src={image.url} alt="" className="size-16 rounded-md border object-cover" />
+                <button
+                  type="button"
+                  aria-label={`Preview image ${index + 1}`}
+                  onClick={() => setPreviewIndex(index)}
+                  className="absolute inset-0 flex items-center justify-center rounded-md bg-black/0 text-white opacity-0 transition-all group-hover:bg-black/40 group-hover:opacity-100"
+                >
+                  <Expand className="size-4" />
+                </button>
+              </div>
               <button
                 type="button"
                 aria-label={`Remove image ${index + 1}`}
-                onClick={() => onChange(urls.filter((_, i) => i !== index))}
+                onClick={() => removeImage(index)}
                 className="absolute -top-1.5 -right-1.5 flex size-5 items-center justify-center rounded-full bg-destructive text-destructive-foreground opacity-80 shadow-sm transition-opacity hover:opacity-100"
               >
                 <X className="size-3" />
               </button>
+              <GripVertical className="absolute -bottom-1.5 -left-1.5 size-5 rounded-full bg-background text-muted-foreground shadow-sm ring-1 ring-border" />
             </div>
           ))}
         </div>
@@ -296,6 +491,64 @@ export function ImageListPicker({ label, value, onChange, error, hint }: ImageLi
           onChange={(e) => handleFiles(e.target.files)}
         />
       </div>
+      {pending.length > 0 ? (
+        <div className="rounded-lg border border-dashed p-3">
+          <div className="flex items-center justify-between gap-2">
+            <p className="text-sm font-medium">
+              {pending.length} {pending.length === 1 ? "image" : "images"} ready
+            </p>
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              onClick={clearPending}
+              disabled={uploading}
+            >
+              <X />
+              Clear
+            </Button>
+          </div>
+          <div className="mt-2 flex flex-wrap gap-2">
+            {pending.map((item) => (
+              <div key={item.id} className="group relative">
+                <img src={item.src} alt="" className="size-16 rounded-md border object-cover" />
+                {item.cropped ? (
+                  <span className="absolute -top-1.5 -left-1.5 rounded-full bg-brand-2 px-1.5 py-0.5 text-[10px] font-medium text-white shadow-sm">
+                    Cropped
+                  </span>
+                ) : null}
+                <button
+                  type="button"
+                  aria-label="Crop this image"
+                  onClick={() => setCropId(item.id)}
+                  disabled={uploading}
+                  className="absolute inset-0 flex items-center justify-center rounded-md bg-black/0 text-white opacity-0 transition-all group-hover:bg-black/40 group-hover:opacity-100"
+                >
+                  <Crop className="size-4" />
+                </button>
+                <button
+                  type="button"
+                  aria-label="Remove this pending image"
+                  onClick={() => revokePending(item.id)}
+                  disabled={uploading}
+                  className="absolute -top-1.5 -right-1.5 flex size-5 items-center justify-center rounded-full bg-destructive text-destructive-foreground shadow-sm transition-opacity hover:opacity-100"
+                >
+                  <X className="size-3" />
+                </button>
+              </div>
+            ))}
+          </div>
+          <div className="mt-3 flex items-center gap-2">
+            <Button type="button" size="sm" onClick={addAllPending} disabled={uploading}>
+              {uploading ? <Loader2 className="animate-spin" /> : <Check />}
+              {uploading ? "Adding..." : `Add all (${pending.length})`}
+            </Button>
+            <PickerHint>
+              Crop any image first; the rest upload as-is and use the full image in the gallery.
+            </PickerHint>
+          </div>
+        </div>
+      ) : null}
       <div className="flex items-center gap-2">
         <Input
           aria-label={`Add ${label.toLowerCase()} URL`}
@@ -315,6 +568,74 @@ export function ImageListPicker({ label, value, onChange, error, hint }: ImageLi
       </div>
       <PickerHint>{hint}</PickerHint>
       <PickerError message={error ?? uploadError} />
+
+      {cropTarget ? (
+        <ImageCropModal
+          key={cropTarget.id}
+          src={cropTarget.src}
+          fileName={cropTarget.file.name}
+          aspect={aspect}
+          shape="rect"
+          uploading={false}
+          onCancel={() => setCropId(null)}
+          onSave={saveCrop}
+          onSkip={() => setCropId(null)}
+        />
+      ) : null}
+
+      {previewIndex !== null && images.length > 0 ? (
+        <div
+          className="fixed inset-0 z-[100] flex items-center justify-center bg-black/85 p-4"
+          onClick={() => setPreviewIndex(null)}
+          role="dialog"
+          aria-modal="true"
+          aria-label={`Image ${previewIndex + 1} of ${images.length}`}
+        >
+          <button
+            type="button"
+            aria-label="Close preview"
+            onClick={() => setPreviewIndex(null)}
+            className="absolute top-4 right-4 flex size-9 items-center justify-center rounded-full bg-white/10 text-white transition-colors hover:bg-white/20"
+          >
+            <X className="size-5" />
+          </button>
+          {images.length > 1 ? (
+            <>
+              <button
+                type="button"
+                aria-label="Previous image"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setPreviewIndex((previewIndex - 1 + images.length) % images.length);
+                }}
+                className="absolute top-1/2 left-4 flex size-10 -translate-y-1/2 items-center justify-center rounded-full bg-white/10 text-white transition-colors hover:bg-white/20"
+              >
+                <ChevronLeft className="size-5" />
+              </button>
+              <button
+                type="button"
+                aria-label="Next image"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setPreviewIndex((previewIndex + 1) % images.length);
+                }}
+                className="absolute top-1/2 right-4 flex size-10 -translate-y-1/2 items-center justify-center rounded-full bg-white/10 text-white transition-colors hover:bg-white/20"
+              >
+                <ChevronRight className="size-5" />
+              </button>
+            </>
+          ) : null}
+          <img
+            src={images[previewIndex].originalUrl}
+            alt={`Full image ${previewIndex + 1}`}
+            onClick={(e) => e.stopPropagation()}
+            className="max-h-[85vh] max-w-[90vw] rounded-lg object-contain"
+          />
+          <span className="absolute bottom-4 left-1/2 -translate-x-1/2 rounded-full bg-white/10 px-3 py-1 font-mono text-xs text-white">
+            {previewIndex + 1} / {images.length}
+          </span>
+        </div>
+      ) : null}
     </div>
   );
 }

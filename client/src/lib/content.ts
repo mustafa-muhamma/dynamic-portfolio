@@ -1,5 +1,10 @@
 export type ApiDoc<T> = T & { id: string };
 
+export type GalleryImage = {
+  url: string;
+  originalUrl: string;
+};
+
 export type Profile = ApiDoc<{
   name: string;
   title: string;
@@ -72,7 +77,7 @@ export type Project = ApiDoc<{
   link?: string;
   repo?: string;
   technologies?: string[];
-  images?: string[];
+  images?: (string | GalleryImage)[];
   featured?: boolean;
   inProgress?: boolean;
   order?: number;
@@ -121,7 +126,7 @@ export type Testimonial = ApiDoc<{
   quote?: string;
   avatar?: string;
   projectId?: string;
-  images?: string[];
+  images?: (string | GalleryImage)[];
   order?: number;
   published?: boolean;
 }>;

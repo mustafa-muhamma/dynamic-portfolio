@@ -17,6 +17,7 @@ import { GradientOrbs, Reveal } from "@/components/public/motion";
 import { Section, SectionHeading } from "@/components/public/section";
 import { useProjects } from "@/hooks/use-public";
 import type { Project } from "@/lib/content";
+import { normalizeGalleryImages } from "@/lib/images";
 import { cn } from "@/lib/utils";
 
 const SLIDE_INTERVAL = 6000;
@@ -37,7 +38,7 @@ function formatMonth(value?: string): string {
 }
 
 function ProjectCover({ project, href }: { project: Project; href: string }) {
-  const images = project.images ?? [];
+  const images = normalizeGalleryImages(project.images);
   const [index, setIndex] = useState(0);
   const [paused, setPaused] = useState(false);
 
@@ -89,7 +90,7 @@ function ProjectCover({ project, href }: { project: Project; href: string }) {
         <AnimatePresence initial={false}>
           <motion.img
             key={index}
-            src={images[index]}
+            src={images[index].url}
             alt={`${project.title} — screenshot ${index + 1}`}
             className="absolute inset-0 h-full w-full object-cover"
             initial={{ opacity: 0, scale: 1.06 }}
