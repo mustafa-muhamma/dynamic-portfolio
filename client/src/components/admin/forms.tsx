@@ -1307,7 +1307,8 @@ const siteSettingsSchema = z.object({
   siteName: requiredString,
   tagline: optionalString,
   navigationLabels: navigationLabelsSchema,
-  sectionVisibility: sectionVisibilitySchema
+  sectionVisibility: sectionVisibilitySchema,
+  testimonialsUrl: optionalString
 });
 
 function recordToLines(value?: Record<string, string>): string[] {
@@ -1358,6 +1359,13 @@ export function SiteSettingsForm({
         id="tagline"
         error={errors.tagline?.message}
         {...register("tagline")}
+      />
+      <TextField
+        label="All testimonials link"
+        id="testimonialsUrl"
+        error={errors.testimonialsUrl?.message}
+        hint="Used by the View all testimonials button on the home page. Leave empty to hide the button."
+        {...register("testimonialsUrl")}
       />
       <ListField
         label="Navigation labels"

@@ -85,6 +85,7 @@ export const siteSettingsWriteSchema = z.object({
   siteName: z.string().trim().min(1),
   tagline: optionalString,
   navigationLabels: z.record(z.string(), z.string()).optional(),
+  testimonialsUrl: optionalString,
   sectionVisibility: z
     .array(
       z.object({
