@@ -2,6 +2,7 @@ import { randomUUID } from "node:crypto";
 import { unlink } from "node:fs/promises";
 import path from "node:path";
 
+import { env } from "../config/env.js";
 import { cloudinary } from "./cloudinary.js";
 
 export type UploadKind = "image" | "document";
@@ -51,5 +52,40 @@ export async function uploadFile(
 export async function deleteFile(publicId: string, kind: UploadKind = "image"): Promise<boolean> {
   const resourceType = kind === "document" ? "raw" : "image";
   const result = await cloudinary.uploader.destroy(publicId, { resource_type: resourceType });
-  return result.result === "ok";
+  return result.result === "ok" || result.result === "not found";
+}
+
+export interface CloudinaryAsset {
+  publicId: string;
+  kind: UploadKind;
+}
+
+export function extractCloudinaryAsset(url: string): CloudinaryAsset | null {
+  let parsed: URL;
+  try {
+    parsed = new URL(url);
+  } catch {
+    return null;
+  }
+
+  const host = parsed.hostname;
+  if (host !== "res.cloudinary.com" && !host.endsWith(".res.cloudinary.com")) return null;
+
+  const parts = parsed.pathname.split("/").filter(Boolean);
+  if (parts.length < 4) return null;
+  if (env.CLOUDINARY_CLOUD_NAME && parts[0] !== env.CLOUDINARY_CLOUD_NAME) return null;
+
+  const resourceType = parts[1];
+  if (resourceType !== "image" && resourceType !== "raw") return null;
+
+  const rest = parts.slice(3);
+  const versionIndex = rest.findIndex((segment) => /^v\d+$/.test(segment));
+  const idParts = versionIndex === -1 ? rest : rest.slice(versionIndex + 1);
+  if (idParts.length === 0) return null;
+
+  const index = idParts.length - 1;
+  const last = idParts[index];
+  if (last === undefined) return null;
+  idParts[index] = last.replace(/\.[a-zA-Z0-9]+$/, "");
+  return { publicId: idParts.join("/"), kind: resourceType === "raw" ? "document" : "image" };
 }

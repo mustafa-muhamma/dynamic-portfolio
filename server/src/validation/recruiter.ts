@@ -5,6 +5,12 @@ const optionalNumber = z.number().optional();
 const optionalBoolean = z.boolean().optional();
 const optionalStringArray = z.array(z.string().trim()).optional();
 
+export const galleryImageSchema = z.object({
+  url: z.string().trim().min(1),
+  originalUrl: z.string().trim().min(1)
+});
+const optionalGalleryImages = z.array(z.union([z.string().trim(), galleryImageSchema])).optional();
+
 export const profileWriteSchema = z.object({
   name: z.string().trim().min(1),
   title: z.string().trim().min(1),
@@ -71,7 +77,7 @@ export const projectWriteSchema = z.object({
   link: optionalString,
   repo: optionalString,
   technologies: optionalStringArray,
-  images: optionalStringArray,
+  images: optionalGalleryImages,
   featured: optionalBoolean,
   inProgress: optionalBoolean,
   order: optionalNumber,
