@@ -226,6 +226,11 @@ function ProjectSlide({ item }: { item: Project }) {
             Case study →
           </Link>
         </div>
+        {item.link ? (
+          <p className="mt-3 text-xs leading-relaxed text-muted-foreground">
+            Live link may be broken — view the case study for screenshots and testimonials.
+          </p>
+        ) : null}
       </div>
     </article>
   );
