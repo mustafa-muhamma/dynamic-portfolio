@@ -447,6 +447,13 @@ export default function ProjectPage() {
                       <ArrowUpRight className="size-4" />
                     </a>
                   ) : null}
+                  {project.link ? (
+                    <p className="text-xs leading-relaxed text-muted-foreground">
+                      This project was built on a production or development domain that may have
+                      changed or expired, so the link could be broken, redirect elsewhere, or open
+                      unrelated content.
+                    </p>
+                  ) : null}
                   {project.repo ? (
                     <a
                       href={project.repo}
