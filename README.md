@@ -12,9 +12,18 @@ content, no third-party lock-in.
 | [`server/`](server/) | Headless content API — Node.js, Express, TypeScript, MongoDB/Mongoose |
 | [`client/`](client/) | Next.js app hosting the public portfolio **and** the admin dashboard  |
 
+![Next.js](https://img.shields.io/badge/Next.js-16-black?style=flat&logo=nextdotjs&logoColor=white)
+![React](https://img.shields.io/badge/React-19-61DAFB?style=flat&logo=react&logoColor=black)
+![TypeScript](https://img.shields.io/badge/TypeScript-5-3178C6?style=flat&logo=typescript&logoColor=white)
+![Express](https://img.shields.io/badge/Express-5-000000?style=flat&logo=express&logoColor=white)
+![MongoDB](https://img.shields.io/badge/MongoDB-Mongoose-47A248?style=flat&logo=mongodb&logoColor=white)
+![Tailwind CSS](https://img.shields.io/badge/Tailwind%20CSS-4-06B6D4?style=flat&logo=tailwindcss&logoColor=white)
+![Deployed on Vercel](https://img.shields.io/badge/Deployed-Vercel-000000?style=flat&logo=vercel&logoColor=white)
+![Tests](https://img.shields.io/badge/tests-60%20passing-2ea44f?style=flat)
+
 ---
 
-## Live Demo
+## 🌐 Live Demo
 
 - **Portfolio & dashboard:** https://dynamic-portfolio-d2r6.vercel.app
 - **API base:** https://dynamic-portfolio-nine-blond.vercel.app/api/v1
@@ -22,7 +31,7 @@ content, no third-party lock-in.
 
 ---
 
-## The Problem
+## 🤔 The Problem
 
 Maintaining a professional online presence today means managing multiple disconnected
 surfaces:
@@ -35,7 +44,7 @@ Every update forces the owner to edit code, duplicate content, and keep several
 versions in sync. The result: an outdated, inconsistent, and inflexible presence that is
 expensive to change and hard to redesign.
 
-## The Solution
+## 💡 The Solution
 
 A single, self-owned content platform:
 
@@ -52,7 +61,7 @@ single piece of content.
 
 ---
 
-## Key Features
+## ✨ Key Features
 
 ### Admin Dashboard (`/admin`)
 
@@ -98,7 +107,7 @@ single piece of content.
 
 ---
 
-## Tech Stack
+## 🧰 Tech Stack
 
 | Layer        | Technology                               | Purpose                            |
 | ------------ | ---------------------------------------- | ---------------------------------- |
@@ -122,7 +131,7 @@ single piece of content.
 |              | Husky + lint-staged + Prettier           | Git hooks and formatting           |
 |              | ESLint + Prettier                        | Linting and code style             |
 
-## Architecture
+## 🏗️ Architecture
 
 Three connected parts, with the backend as the single source of truth:
 
@@ -146,7 +155,7 @@ to the backend directly, and CORS is never exposed.
 
 ---
 
-## Integrations
+## 🔌 Integrations
 
 - **MongoDB Atlas** — hosted database (also works with local MongoDB).
 - **Cloudinary** — image/document uploads, cropping, and asset cleanup.
@@ -157,7 +166,7 @@ to the backend directly, and CORS is never exposed.
 
 ---
 
-## Repository Structure
+## 📁 Repository Structure
 
 ```
 portfolio/                          # monorepo root
@@ -191,7 +200,7 @@ portfolio/                          # monorepo root
 
 ---
 
-## Getting Started
+## 🚀 Getting Started
 
 ### Prerequisites
 
@@ -234,7 +243,7 @@ for the dashboard.
 
 ---
 
-## Scripts
+## 📜 Scripts
 
 ### Root
 
@@ -267,7 +276,7 @@ for the dashboard.
 
 ---
 
-## Testing
+## 🧪 Testing
 
 The backend ships a **Vitest + Supertest** suite — **60 tests** across 3 files:
 
@@ -288,7 +297,7 @@ contract tests plus type-checking).
 
 ---
 
-## Pre-Commit Behavior
+## 🧹 Pre-Commit Behavior
 
 Every commit is automatically formatted by a **Husky pre-commit hook**
 (`.husky/pre-commit`):
@@ -313,7 +322,7 @@ fix(client): resolve project detail by id when slug is missing
 
 ---
 
-## Project Documentation
+## 📚 Project Documentation
 
 The `docs/` folder is the source of truth for why/what/how the product is built:
 
@@ -327,7 +336,7 @@ The `docs/` folder is the source of truth for why/what/how the product is built:
 
 ---
 
-## Deployment
+## ☁️ Deployment
 
 The platform is deployed across four services:
 
@@ -350,7 +359,7 @@ post-deploy verification) live in **[`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md)**
 
 ---
 
-## Contributing & Forking
+## 🤝 Contributing & Forking
 
 This project is a showcase of a real-world full-stack architecture — contributions,
 ideas, and improvements are welcome. To contribute:
@@ -391,7 +400,7 @@ ideas, and improvements are welcome. To contribute:
 
 ---
 
-## Status & Roadmap
+## 🗺️ Status & Roadmap
 
 **Project complete.** All milestones (M0–M5) are delivered and the platform is live:
 
@@ -405,9 +414,3 @@ ideas, and improvements are welcome. To contribute:
 **Backlog / future features:** CI/CD automation via GitHub, blog/articles, scheduled
 publishing and content versioning, analytics in the dashboard, i18n, and multi-surface
 growth (see `docs/PRODUCT_REQUIREMENTS.md` §16).
-
----
-
-## License
-
-Not yet specified — contact the project owner for usage terms.

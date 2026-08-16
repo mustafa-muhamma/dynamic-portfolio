@@ -1236,6 +1236,7 @@
 
 - Closed M5 in `docs/MASTER_PLAN.md`: marked the final two hardening deliverables complete (responsive/accessibility/perf polish pass; security review, tests, and performance pass — 60 API tests passing), set progress to **100%**, marked the phase complete, cleared the remaining-work list, and updated the next-session plan.
 - Rewrote the root `README.md` as a professional, recruiter- and contributor-friendly project overview with 15 sections: tagline, live demo links, problem → solution, key features, tech stack table, architecture diagram, integrations, **full annotated repository structure**, getting started, scripts reference, testing (60 tests), pre-commit behavior, project documentation links, deployment summary, contributing/forking guide, and status/roadmap (all milestones M0–M5 complete). Verified with `prettier --check`.
+- Follow-up polish: removed the License section, added a shields.io tech-stack badge row, and added tasteful section-header emojis to keep the README readable and friendly.
 
 ### Problems Found
 
