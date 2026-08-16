@@ -312,6 +312,17 @@ describe("admin read endpoints", () => {
     const res = await request(app).get("/api/v1/admin/site-settings").set(authed()).expect(404);
     expect(res.body.error.code).toBe("NOT_FOUND");
   });
+
+  it("round-trips site settings including the testimonials link", async () => {
+    await request(app)
+      .put("/api/v1/admin/site-settings")
+      .set(authed())
+      .send({ siteName: "My Site", testimonialsUrl: "https://example.com/reviews" })
+      .expect(200);
+    const res = await request(app).get("/api/v1/admin/site-settings").set(authed()).expect(200);
+    expect(res.body.siteName).toBe("My Site");
+    expect(res.body.testimonialsUrl).toBe("https://example.com/reviews");
+  });
 });
 
 describe("admin inquiry management", () => {

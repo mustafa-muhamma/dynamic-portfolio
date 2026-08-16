@@ -1,11 +1,17 @@
 "use client";
 
+import { useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { toast } from "sonner";
 
 import { Skeleton } from "@/components/ui/skeleton";
 import { useSingleton, useUpsertSingleton } from "@/hooks/use-content";
-import type { CreateDoc, SingletonDoc, SingletonResource } from "@/lib/content";
+import {
+  SINGLETONS,
+  type CreateDoc,
+  type SingletonDoc,
+  type SingletonResource
+} from "@/lib/content";
 import type { ResourceFormProps } from "@/components/admin/collection-manager";
 import { mediaDiffRemoved } from "@/lib/images";
 import { deleteMedia } from "@/lib/media";
@@ -27,6 +33,7 @@ export function SingletonManager<K extends SingletonResource>({
 }: SingletonManagerProps<K>) {
   const singleton = useSingleton(resource);
   const upsert = useUpsertSingleton(resource);
+  const queryClient = useQueryClient();
   const [savedAt, setSavedAt] = useState(0);
 
   if (singleton.isPending) {
@@ -60,7 +67,8 @@ export function SingletonManager<K extends SingletonResource>({
         onSubmit={(values) => {
           const previous = singleton.data ? (getImages?.(singleton.data) ?? []) : [];
           upsert.mutate(values, {
-            onSuccess: () => {
+            onSuccess: async () => {
+              await queryClient.refetchQueries({ queryKey: [SINGLETONS[resource]] });
               setSavedAt((n) => n + 1);
               toast.success(`${title} saved`);
               const next = getImages ? (getImages(values as unknown as SingletonDoc[K]) ?? []) : [];

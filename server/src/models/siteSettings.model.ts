@@ -17,7 +17,8 @@ const siteSettingsSchema = new Schema(
     siteName: { type: String, required: true, trim: true },
     tagline: { type: String, default: "" },
     navigationLabels: { type: Schema.Types.Mixed, default: {} },
-    sectionVisibility: { type: [sectionVisibilitySchema], default: [] }
+    sectionVisibility: { type: [sectionVisibilitySchema], default: [] },
+    testimonialsUrl: { type: String, default: "" }
   },
   { timestamps: true, versionKey: false }
 );

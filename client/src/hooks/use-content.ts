@@ -77,11 +77,9 @@ export function useSingleton<K extends SingletonResource>(resource: K) {
 }
 
 export function useUpsertSingleton<K extends SingletonResource>(resource: K) {
-  const invalidate = useInvalidate(SINGLETONS[resource]);
   return useMutation({
     mutationFn: (data: CreateDoc<SingletonDoc[K]>) =>
       adminApi.upsert<SingletonDoc[K]>(SINGLETONS[resource], data),
-    onSuccess: invalidate,
     onError: (err) => toastError(err, "Failed to save")
   });
 }

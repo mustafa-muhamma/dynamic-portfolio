@@ -1292,6 +1292,19 @@ const navigationLabelsSchema = z.preprocess((v) => {
 const sectionVisibilitySchema = z.preprocess(
   (v) => {
     if (!Array.isArray(v)) return v;
+    if (v.length > 0 && typeof v[0] !== "string") {
+      const out: { key: string; label: string; enabled: boolean }[] = [];
+      for (const item of v) {
+        const key = typeof item?.key === "string" ? item.key.trim() : "";
+        if (!key) continue;
+        out.push({
+          key,
+          label: typeof item?.label === "string" ? item.label.trim() : "",
+          enabled: item?.enabled !== false
+        });
+      }
+      return out.length ? out : undefined;
+    }
     const out: { key: string; label: string; enabled: boolean }[] = [];
     for (const line of v) {
       const parts = line.split("=").map((s: string) => s.trim());
