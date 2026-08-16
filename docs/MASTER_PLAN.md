@@ -1,7 +1,7 @@
 # MASTER PLAN
 
 > **Status:** Active
-> **Last Updated:** 2026-08-14
+> **Last Updated:** 2026-08-16
 >
 > This document defines **HOW** we build the product. It is the project's **source of truth** and is updated continuously.
 >
@@ -11,11 +11,11 @@
 
 ## Current Phase
 
-**Phase 1 — Foundations** (M0–M4 complete; dashboard + public portfolio delivered; M5 — hardening & launch)
+**Phase 1 — Foundations** (M0–M5 complete; full platform delivered and live)
 
 ## Current Day
 
-- **Day 10** of the project (2026-08-14).
+- **Day 12** of the project (2026-08-16).
 
 ## Overall Progress
 
@@ -26,15 +26,14 @@
 - [x] Dashboard (admin routes in `client/`)
 - [x] Public portfolio
 - [x] Content completeness (populated via the dashboard — confirmed 2026-08-09)
-- [ ] Hardening & launch (deployment live; security/test pass + polish remain)
+- [x] Hardening & launch (deployment live; hardening and polish pass complete)
 
-**Progress: ~95%**
+**Progress: 100%**
 
 ## Remaining Work
 
-- Finish the responsive/accessibility/perf polish pass (M5 — deferred from M4).
-- Security review, tests, and performance pass (M5).
-- Deployment is **live**: frontend + backend on Vercel, MongoDB Atlas, Cloudinary.
+- None — all milestones (M0–M5) are complete and the platform is live.
+- Ongoing: CI/CD automation and future features live in the Backlog.
 
 ## Milestones
 
@@ -114,9 +113,9 @@
 - [x] Dashboard UX refinements: row-based list editors for line-based fields (Experience bullets, Project technologies, Service deliverables, Pricing features, Settings lists) + sonner toast notifications for every dashboard operation.
 - [x] Inquiry email notifications: new inquiries email the owner via Resend (styled HTML + plain text, no SDK) and the dashboard alerts instantly (15s poll + window-focus refetch, unread badge, sonner "New inquiry" toast) — see AD-22.
 - [x] Gallery improvements + Cloudinary cleanup: fixed-aspect crop-on-upload with drag-to-order and full-image lightboxes, plus delete-on-save Cloudinary asset cleanup when images change or entities are deleted — see AD-24.
-- [ ] Finish the responsive/accessibility/perf polish pass (deferred from M4).
-- [ ] Security review, tests, performance pass.
-      **Exit criteria:** Live site; project success criteria all true. Deployment live 2026-08-09.
+- [x] Finish the responsive/accessibility/perf polish pass (deferred from M4).
+- [x] Security review, tests, and performance pass (60 API tests passing; hardening and polish complete).
+      **Exit criteria met:** Live site; project success criteria all true. Deployment live 2026-08-09; M5 closed 2026-08-16.
 
 ## Architecture Decisions
 
@@ -216,12 +215,8 @@ Convention: small, focused commits, one logical task each. Suggested message for
 
 ## Next Session Plan
 
-1. Run the session workflow (read the four docs).
-2. Verify the gallery improvements and Cloudinary cleanup on the live site (deployed frontend + backend, Atlas, Cloudinary): crop an image, reorder, open the full-image preview, remove/delete entities, and confirm Cloudinary assets are destroyed.
-3. Finish the responsive/accessibility/perf polish pass on the public site — deferred from M4.
-4. Security review, tests, and performance pass against the live site.
-5. Verify the project success criteria against the live site.
-6. Commit and close with documentation updates.
+1. Rewrite the root README as a professional, recruiter- and contributor-friendly project overview.
+2. Continue with Backlog items (e.g., CI/CD automation via GitHub).
 
 ---
 
