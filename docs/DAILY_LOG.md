@@ -1272,3 +1272,47 @@
 ### Tomorrow's Goal
 
 - Continue with Backlog items as directed by the owner.
+
+---
+
+## Session 22 — 2026-08-17
+
+- **Session Duration:** UX improvements — truncated project descriptions + bulk paste list input.
+- **Session Number:** 22
+- **Phase:** 1 — Post-launch UX polish
+
+### Completed Work
+
+- **Project cards** (`client/src/components/public/projects.tsx`): truncated the description on public project carousel cards to 120 characters with `...` when longer, keeping the cards compact while the existing "Case study →" link invites users to see full details.
+- **Admin ListField** (`client/src/components/admin/fields.tsx`): added bulk-paste support directly in each input row — paste or type text containing `·`, `,`, or `|` delimiters and the input splits into multiple items on paste or blur. No separate textarea; the parsing happens at the row level. Updated hint text to explain the supported delimiters.
+
+### Problems Found
+
+- Initial implementation used a separate `<Textarea>` above the rows, but the user preferred the bulk behavior to happen directly inside the input rows (more natural UX, no extra UI element).
+
+### Solutions
+
+- Rewrote the bulk-paste logic to use per-row `onPaste` and `onBlur` handlers instead of a standalone textarea. Removed the unused `useState` import.
+
+### Architecture Decisions
+
+- (none new)
+
+### Commits Created
+
+- `fix: truncate project descriptions and add bulk paste to list inputs` (pending)
+
+### Files Modified
+
+- `client/src/components/public/projects.tsx` (description truncation)
+- `client/src/components/admin/fields.tsx` (bulk paste in ListField)
+- `docs/DAILY_LOG.md` (this entry)
+
+### Remaining Tasks
+
+- Backlog: CI/CD automation via GitHub.
+- Future features per PRD §16 (blog, content versioning, analytics, i18n).
+
+### Tomorrow's Goal
+
+- Continue with Backlog items or new UX improvements as directed by the owner.
