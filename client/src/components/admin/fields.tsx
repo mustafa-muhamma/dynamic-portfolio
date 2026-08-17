@@ -133,7 +133,7 @@ export function TextAreaField({
 export function ListField({
   label,
   error,
-  hint = "One item per row.",
+  hint = "Separate items with · , or | to add multiple at once.",
   value,
   onChange
 }: {
@@ -144,6 +144,34 @@ export function ListField({
   onChange: (value: string[]) => void;
 }) {
   const items = value ?? [];
+  const DELIM = /[·,|]/;
+
+  function splitItems(text: string): string[] {
+    return text
+      .split(DELIM)
+      .map((s) => s.trim())
+      .filter(Boolean);
+  }
+
+  function handlePaste(e: React.ClipboardEvent<HTMLInputElement>, index: number) {
+    const pasted = e.clipboardData.getData("text");
+    if (!DELIM.test(pasted)) return;
+    e.preventDefault();
+    const newItems = splitItems(pasted);
+    if (newItems.length === 0) return;
+    const next = items.filter((_, i) => i !== index);
+    onChange([...next, ...newItems]);
+  }
+
+  function handleBlur(e: React.FocusEvent<HTMLInputElement>, index: number) {
+    const val = e.target.value;
+    if (!DELIM.test(val)) return;
+    const newItems = splitItems(val);
+    if (newItems.length === 0) return;
+    const next = items.filter((_, i) => i !== index);
+    onChange([...next, ...newItems]);
+  }
+
   return (
     <Field label={label} error={error} hint={hint}>
       <div className="flex flex-col gap-2">
@@ -158,6 +186,8 @@ export function ListField({
                 next[index] = e.target.value;
                 onChange(next.map((s) => s.trim()).filter(Boolean));
               }}
+              onPaste={(e) => handlePaste(e, index)}
+              onBlur={(e) => handleBlur(e, index)}
             />
             <Button
               type="button"

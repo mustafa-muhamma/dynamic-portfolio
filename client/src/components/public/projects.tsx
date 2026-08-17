@@ -179,7 +179,9 @@ function ProjectSlide({ item }: { item: Project }) {
 
         {item.description ? (
           <p className="mt-3 text-sm leading-relaxed text-muted-foreground md:text-base">
-            {item.description}
+            {item.description.length > 120
+              ? item.description.slice(0, 120).trimEnd() + "..."
+              : item.description}
           </p>
         ) : null}
 
