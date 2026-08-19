@@ -332,13 +332,15 @@ export function Testimonials() {
 
         {testimonialsUrl ? (
           <Reveal delay={0.1} className="mt-12 text-center">
-            <Link
+            <a
               href={testimonialsUrl}
+              target="_blank"
+              rel="noreferrer"
               className="inline-flex items-center justify-center gap-2 rounded-full border border-border px-6 py-3 text-sm font-semibold text-foreground transition-colors hover:border-brand-2 hover:text-brand-2"
             >
               View all testimonials
               <ExternalLink className="size-4" />
-            </Link>
+            </a>
           </Reveal>
         ) : null}
       </div>
